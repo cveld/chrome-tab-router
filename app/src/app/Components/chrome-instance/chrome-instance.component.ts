@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { chromeInstanceId } from 'src/app/Services/ChromeInstanceIdHandler';
 import { contentScriptReady } from 'src/app/Services/Messaging/DocumentEventing';
@@ -10,8 +10,9 @@ import { contentScriptReady } from 'src/app/Services/Messaging/DocumentEventing'
 })
 export class ChromeInstanceComponent implements OnInit, OnDestroy {
   chromeInstanceId?: string;
-  contentScriptReady: Observable<boolean> = contentScriptReady.asObservable();
-  constructor() { }
+  contentScriptReady$: Observable<boolean> = contentScriptReady.asObservable();
+  contentScriptReady?: boolean;
+  constructor(private changeDetectorRef: ChangeDetectorRef) { }
 
   listener?: any;
   subscriptions: Array<Subscription> = [];
@@ -27,6 +28,7 @@ export class ChromeInstanceComponent implements OnInit, OnDestroy {
         this.chromeInstanceId = value;
       }
     }));    
+    chromeInstanceId.subscribe(value => {});
   }
 
   buttonClicked() {

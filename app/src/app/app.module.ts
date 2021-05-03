@@ -1,22 +1,29 @@
-import { NgModule } from '@angular/core';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ChromeInstanceComponent } from './Components/chrome-instance/chrome-instance.component';
 import { HomeComponent } from './Components/home/home.component';
+import { init } from './Services/Messaging/DocumentEventing';
+import { AzureAuthenticationComponent } from './Components/azure-authentication/azure-authentication.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
     AppComponent,
     ChromeInstanceComponent,
-    HomeComponent
+    HomeComponent,
+    AzureAuthenticationComponent
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    HttpClientModule
   ],
-  providers: [],
+  providers: [
+    { provide: APP_INITIALIZER, useFactory: init, deps: [], multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -5,13 +5,6 @@ import { Subject } from "rxjs";
 const eventListenerId = 'chrome-tab-router-page';
 const eventDispatchTargetId = 'chrome-tab-router-content';
 
-document.addEventListener(eventListenerId, (customEvent) => {
-  const event = (customEvent as CustomEvent).detail as IEventType;
-  if (eventHandlers.has(event.type)) {
-    const func = eventHandlers.get(event.type);
-    func!(event);
-  }
-});
 
 interface IEventType {
   type: string;
@@ -31,21 +24,34 @@ export function dispatchEventToContentScript(event: IEventType) {
 
 export const contentScriptReady : BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-eventHandlers.set('ping', (...args: any) => {
-  if (!contentScriptReady.getValue()) {
-    contentScriptReady.next(true);
-  }
+eventHandlers.set('ping', (...args: any) => {  
   dispatchEventToContentScript({
     type: 'pong'
   });
 });
 
-eventHandlers.set('pong', (...args: any) => {
+eventHandlers.set('pong', (...args: any) => {  
   if (!contentScriptReady.getValue()) {
     contentScriptReady.next(true);
   }
 });
 
-dispatchEventToContentScript({ type: 'ping' });
+eventHandlers.set('contentscriptready', (...args: any) => {
+  if (!contentScriptReady.getValue()) {
+    contentScriptReady.next(true);
+  }
+});
 
-console.log('page-documenteventing-loaded');
+export function init() {
+  return () => {
+    document.addEventListener(eventListenerId, (customEvent) => {
+      const event = (customEvent as CustomEvent).detail as IEventType;
+      if (eventHandlers.has(event.type)) {
+        const func = eventHandlers.get(event.type);
+        func!(event);
+      }
+    });
+
+    dispatchEventToContentScript({ type: 'ping' });
+  }
+}
