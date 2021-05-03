@@ -1,7 +1,9 @@
 {
   "IsEncrypted": false,
   "Values": {
+    "AzureSignalRConnectionString": "Endpoint=https://carlintveld.service.signalr.net;AccessKey=wpZgP56NF1UPwcZYC6bjCpTLYfbdhEl0SUDD+/1F0bQ=;Version=1.0;",    
     "AzureWebJobsStorage": "",
-    "FUNCTIONS_WORKER_RUNTIME": "node"
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "EncryptionKey": "380b1098-ba03-43b3-a350-f254d83cd41a"
   }
 }
