@@ -5,5 +5,9 @@
     "AzureWebJobsStorage": "",
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "EncryptionKey": "380b1098-ba03-43b3-a350-f254d83cd41a"
+  },
+  "Host": {
+    "CORS": "http://localhost:4200,https://azure-samples.github.io",
+    "CORSCredentials": true
   }
 }

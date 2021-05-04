@@ -10,7 +10,11 @@ export class AzureAuthenticationComponent implements OnInit {
 
   constructor(public azureAuthentication: AzureAuthentication) { }
   authMe = this.azureAuthentication.authMe();
+  isLoggedIn = this.azureAuthentication.isLoggedIn;
   ngOnInit(): void {
   }
 
+  clicked() {
+    this.azureAuthentication.doCall();
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "disabled": false,
+  "disabled": true,
   "bindings": [
     {
       "authLevel": "anonymous",
@@ -16,7 +16,9 @@
       "type": "signalRConnectionInfo",
       "name": "connectionInfo",
       "hubName": "chat",
+      "userId": "{headers.groupcode}",
       "direction": "in"
     }
-  ]
+  ],
+  "scriptFile": "../dist/js/negotiate.js"
 }

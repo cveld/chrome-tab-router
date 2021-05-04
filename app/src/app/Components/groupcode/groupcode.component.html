@@ -1,0 +1,25 @@
+<h1>Groupcode</h1>
+<p>
+    The groupcode defines the set of Chrome user profiles that work together.
+</p>
+<p>
+    You have two options:
+    1. Generate a new groupcode
+    2. Reuse a generated groupcode
+</p>
+<p>
+    Currently active groupcode:
+</p>
+<p>
+    {{groupcode}}
+</p>
+
+<h2>Generate</h2>
+<p><button (click)="generateClicked()">Generate</button></p>
+
+<h2>Reuse existing code</h2>
+<p>    
+    <textarea [(ngModel)]='rapidPageValue' rows="30" cols="120">                             
+    </textarea>
+    <button (click)="submitClicked()">Submit</button>
+</p>

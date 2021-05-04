@@ -1,3 +1,8 @@
-<p>azure-authentication works!</p>
+Your easy auth information:<br>
+<p>
+    {{ authMe | async | json }}
+</p>
 
-{{ authMe | async | json }}
+<div *ngIf="isLoggedIn | async"><a href="/.auth/logout">Log out</a></div>
+<div *ngIf="!(isLoggedIn | async)"><a href="/.auth/login/aad">Log in</a></div>
+<button (click)="clicked()">Auth</button>

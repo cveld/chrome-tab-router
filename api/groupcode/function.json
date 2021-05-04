@@ -16,5 +16,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/groupcode/index.js"
+  "scriptFile": "../dist/js/groupcode.js"
 }
