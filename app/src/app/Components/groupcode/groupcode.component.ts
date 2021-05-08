@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { GroupcodeHandler } from "../../Services/GroupcodeHandler";
 
 @Component({
   selector: 'app-groupcode',
@@ -7,17 +8,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class GroupcodeComponent implements OnInit {
 
-  constructor() { }
-  rapidPageValue?: string;
+  constructor(private groupcodeHandler: GroupcodeHandler) { }
+  enteredGroupcode?: string;
 
   ngOnInit(): void {
   }
 
-  groupcode?: string;
+  groupcode = this.groupcodeHandler.groupcode;
+
   generateClicked() {
-    this.groupcode = 'generated';
+    this.groupcodeHandler.getGroupcode();
   }
   submitClicked() {
-    this.groupcode = this.rapidPageValue;
+    this.groupcodeHandler.setGroupcode(this.enteredGroupcode!);
   }
 }

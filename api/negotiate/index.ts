@@ -2,17 +2,20 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { decrypt } from "../Utility/encryption";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest, connectionInfo: any): Promise<void> {  
-  if (!req.body?.groupcode) {
+  if (!req.headers['groupcode'] || !req.headers['groupcodeauthorization']) {
     context.res = {
       status: 400,
       body: {
-        "ErrorCode": "A0"
+        "ErrorCode": "A0",
+        "groupcode": req.headers['groupcode'],
+        "groupcodeauthorization": req.headers['groupcodeauthorization'],
+        "headers": req.headers
       }
     };
     return;
   }
   
-  const encryptedGroupcode = req.body.groupcode;    
+  const encryptedGroupcode = req.headers.groupcodeauthorization;    
   const clientprincipalnamestring = decrypt(encryptedGroupcode);  
   const clientprincipalname = JSON.parse(clientprincipalnamestring);
 

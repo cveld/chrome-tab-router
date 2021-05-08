@@ -21,14 +21,19 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const clientprincipalname = JSON.parse(clientprincipalnameString);
     clientprincipalname.groupcode = uuidv4();
     const result = encrypt(JSON.stringify(clientprincipalname));
-    //const result = 3;
+    //const result = 3;   
+
     context.res = {
         // status: 200, /* Defaults to 200 */
         body: {
             // responseMessage: responseMessage,
             // headers: req.headers,
             clientprincipalname: clientprincipalname,
-            result: result
+            signature: result,
+            encoded: Buffer.from(JSON.stringify({
+                clientprincipalname: clientprincipalname,
+                signature: result
+            })).toString('base64')            
         }
     };
 

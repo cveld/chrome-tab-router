@@ -21,8 +21,7 @@ export class ChromeInstanceComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(value => value.unsubscribe());
   }
 
-  ngOnInit(): void {
-    console.log('here it comes');
+  ngOnInit(): void {    
     this.subscriptions.push(chromeInstanceId.subscribe({
       next: value => {
         this.chromeInstanceId = value;

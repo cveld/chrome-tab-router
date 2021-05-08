@@ -4,22 +4,28 @@
 </p>
 <p>
     You have two options:
-    1. Generate a new groupcode
-    2. Reuse a generated groupcode
 </p>
+<ol>
+    <li>Generate a new groupcode</li>
+    <li>Reuse a generated groupcode</li>
+</ol>
 <p>
     Currently active groupcode:
 </p>
-<p>
-    {{groupcode}}
+<p *ngIf="!!(groupcode | async); else nogroupcode">    
+    {{ groupcode | async }}
 </p>
+<ng-template #nogroupcode>
+    <i>No groupcode assigned yet</i>
+</ng-template>
+
 
 <h2>Generate</h2>
 <p><button (click)="generateClicked()">Generate</button></p>
 
 <h2>Reuse existing code</h2>
 <p>    
-    <textarea [(ngModel)]='rapidPageValue' rows="30" cols="120">                             
+    <textarea [(ngModel)]='enteredGroupcode' rows="5" cols="40">                             
     </textarea>
     <button (click)="submitClicked()">Submit</button>
 </p>
