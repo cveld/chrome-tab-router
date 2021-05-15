@@ -1,10 +1,10 @@
 {
+  "$schema": "http://json.schemastore.org/chrome-manifest",
   "manifest_version": 2,
 
-  "name": "Chrome Extension TypeScript Starter",
-  "description": "Chrome Extension, TypeScript, Visual Studio Code",
+  "name": "Chrome Tab Router",
+  "description": "Routes urls to desired user profiles",
   "version": "1.0",
-
   "options_ui": {
     "page": "options.html",
     "chrome_style": true
@@ -12,7 +12,7 @@
 
   "browser_action": {
     "default_icon": "icon.png",
-    "default_popup": "popup.html"
+    "default_popup": "popup/index.html#popup"
   },
 
   "content_scripts": [
@@ -31,6 +31,8 @@
     "gcm",
     "identity",
     "tabs",
-    "<all_urls>"
-  ]
+    "<all_urls>",
+    "*://*/*"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
 }

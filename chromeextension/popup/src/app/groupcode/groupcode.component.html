@@ -1,0 +1,14 @@
+<div class="row">
+    <div class="md-4" style="width: 50px; text-overflow: ellipsis; overflow: hidden;">
+    {{groupcode|async}}
+    </div>
+    <div class="md-4"><button class="btn-secondary mr-1 mb-1">
+        <i class="bi-clipboard-plus" style="font-size: 1rem;"></i>
+    </button>
+    </div>
+
+
+<button class="btn-primary mr-1 mb-1" (click)='generateClicked()'>Generate</button>
+<button class="btn-secondary" (click)='submitClicked()'>Use existing</button>
+
+</div>  

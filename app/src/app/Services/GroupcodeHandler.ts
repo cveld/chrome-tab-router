@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { contentScriptReady, dispatchEventToContentScript, eventHandlers } from './Messaging/DocumentEventing';
+import { contentScriptReady, dispatchEventToContentScript, eventHandlers, IEventType } from './Messaging/DocumentEventing';
 
 interface IGroupCode {
   clientprincipalname?: object,
@@ -12,14 +12,12 @@ interface IGroupCode {
 @Injectable({
   providedIn: 'root',
 })
-export class GroupcodeHandler implements OnInit {
-  constructor(private httpClient: HttpClient) {    
-  }
-  
-  ngOnInit(): void {
-    eventHandlers.set('groupcode', (...args: any[]) => {
-      this.groupcode.next(args[0].payload);
+export class GroupcodeHandler {
+  constructor(private httpClient: HttpClient) {      
+    eventHandlers.set('groupcode', (message: IEventType) => {
+      this.groupcode.next(message.payload.encoded);
     });
+
     contentScriptReady.subscribe(value => {
       if (value) {
         dispatchEventToContentScript({ 

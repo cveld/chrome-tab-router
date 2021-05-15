@@ -13,9 +13,13 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   }
 });
 
-chrome.runtime.connect().onDisconnect.addListener(function() {
-  // clean up when content script gets disconnected
-  console.log('Contentscript disconnected from runtime');
-})
+chrome.runtime.onConnect.addListener((...args) => {
+  console.log('onConnect listener', args);
+});
+const port = chrome.runtime.connect();
+port.onDisconnect.addListener(function() {
+   // clean up when content script gets disconnected
+   console.log('Contentscript disconnected from runtime');
+});
 
 dispatchEventToPage({ type: 'contentscriptready' });

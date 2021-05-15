@@ -13,7 +13,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
   }
 
   const encryptedGroupcode = req.headers.groupcodeauthorization;    
-  const clientprincipalnamestring = decrypt(encryptedGroupcode);  
+  const clientprincipalnamestring = decrypt(encryptedGroupcode); 
+  context.res = {
+    body: {
+      "req.headers.groupcodeauthorization": req.headers.groupcodeauthorization,
+      "clientprincipalnamestring": clientprincipalnamestring
+    }
+  } 
+  return
   const clientprincipalname = JSON.parse(clientprincipalnamestring);  
 
   context.res = {

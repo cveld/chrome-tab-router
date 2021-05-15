@@ -14,4 +14,14 @@ async function setGroupcodeHandler(...args: any) {
   });
 }
 
+eventHandlers.set('getgroupcode', async () => {
+  const result = await sendMessage({
+    type: 'getgroupcode'
+  });
+  dispatchEventToPage({
+    type: 'groupcode',
+    payload: result
+  });
+});
+
 console.log('contentgroupcodehandler loaded');

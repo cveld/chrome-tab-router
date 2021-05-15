@@ -6,7 +6,7 @@ const eventListenerId = 'chrome-tab-router-page';
 const eventDispatchTargetId = 'chrome-tab-router-content';
 
 
-interface IEventType {
+export interface IEventType {
   type: string;
   payload?: any;
 }

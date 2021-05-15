@@ -1,5 +1,8 @@
 import { BehaviorSubject, ReplaySubject } from 'rxjs';
-import { IMessageType, messageHandlers, sendMessage } from '../Messaging/ChromeMessaging';
+import { messageHandlers, sendMessage } from '../Messaging/ChromeMessaging';
+import { IMessageType } from '../Shared/MessageModels';
+import { configUrl } from './settings';
+import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';
 
 interface IGroupcode {
   clientprincipalname?: {
@@ -11,8 +14,14 @@ export const groupcode = new BehaviorSubject<IGroupcode>({});
 // the chrome storage contains the mime64 wrapped version
 // the BehaviorSubject contains the decoded version
 chrome.storage.local.get('groupcode', value => {
+  if (!value || Object.keys(value).length == 0) {
+    // the groupcode is undefined; i.e. not yet stored in the chrome local storage. Skip it
+    launchConfig();
+    return;
+  }
   const groupcodestring = atob(value.groupcode);
   const groupcodevalue = JSON.parse(groupcodestring);
+  groupcodevalue.encoded = value.groupcode;
   groupcode.next(groupcodevalue);
 });
 chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -20,6 +29,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
         if (key === 'groupcode') {            
           const groupcodestring = atob(newValue);
           const groupcodevalue = JSON.parse(groupcodestring);
+          groupcodevalue.encoded = newValue;
           groupcode.next(groupcodevalue);
           console.log(`new groupcode value: ${groupcodevalue}`);
         }
@@ -41,3 +51,27 @@ function setGroupcodeHandler(request: IMessageType, sender: chrome.runtime.Messa
 }
 
 messageHandlers.set('groupcode', setGroupcodeHandler);
+
+function launchConfig() {  
+  //chrome.tabs.create({ url: configUrl });
+}
+
+const popupmessaging = BackgroundChromeMessagingWithPort.getInstance('popup');
+
+groupcode.subscribe(next => {
+  popupmessaging.sendMessage({
+    type: 'groupcode',
+    payload: next
+  });
+});
+
+popupmessaging.messageHandlers.set('getgroupcode', (message, port) => {
+  popupmessaging.sendMessage({
+    type: 'groupcode',
+    payload: groupcode.value
+  });
+});
+
+messageHandlers.set('getgroupcode', (request, sender, sendResponse) => {
+  sendResponse(groupcode.value);
+})

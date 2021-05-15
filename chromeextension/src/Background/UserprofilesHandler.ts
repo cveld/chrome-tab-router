@@ -1,6 +1,7 @@
 import { sendMessage as sendMessageToContentPage } from '../Messaging/ChromeMessaging';
+import { ConnectionStatusEnum } from '../Shared/signalrModels';
 import { chromeInstanceId } from './BackgroundChromeInstanceIdHandler';
-import { connectionStatus, ConnectionStatusEnum } from './signalr';
+import { connectionStatus } from './signalr';
 import { sendSignalrMessage, addHandler } from './signalrmessages';
 
 connectionStatus.subscribe(newConnectionStatus => {

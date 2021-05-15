@@ -4,17 +4,7 @@ import { chromeInstanceId } from "./BackgroundChromeInstanceIdHandler";
 import { groupcode } from "./BackgroundGroupcodeHandler";
 import { apiBaseUrl } from "./settings";
 import { connection } from './signalr';
-
-export const enum MessageStatusEnum {
-    undefined,
-    success,
-    error,
-    init
-}
-interface IMessageStatus {
-status: MessageStatusEnum,
-error?: string
-}
+import { IMessageStatus, MessageStatusEnum } from '../Shared/MessageStatusModels';
 export const messageStatus = new BehaviorSubject<IMessageStatus>({ status: MessageStatusEnum.init });
     
 interface ISignalrMessage {
@@ -23,7 +13,10 @@ interface ISignalrMessage {
 }
 
 export async function sendSignalrMessage(message: ISignalrMessage) {  
-    const groupcodeAuthorization = groupcode.value.signature!;
+  if (!groupcode.value.signature) {
+    return;
+  }
+  const groupcodeAuthorization = groupcode.value.signature;
     try {
       const result = await axios.post(`${apiBaseUrl}/api/messages`, {
         chromeinstanceid: chromeInstanceId.value,

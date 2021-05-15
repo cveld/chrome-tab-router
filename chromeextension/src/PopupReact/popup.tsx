@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
+import { BehaviorSubject } from "rxjs";
+import { configUrl } from "../Background/settings";
+import { IConnectionStatus } from "../Shared/signalrModels";
+import { connectionStatus$, reconnect } from './popupSignalrConnectionHandler';
+import { ScriptChromeMessagingWithPort } from '../Messaging/ScriptChromeMessagingPort';
 
 const Popup = () => {
   const [count, setCount] = useState(0);
   const [currentURL, setCurrentURL] = useState<string>();
+  const [connectionStatus, setConnectionStatus] = useState<IConnectionStatus>();
 
   useEffect(() => {
     chrome.browserAction.setTitle({ title: 'some hover text'  })
@@ -12,6 +18,18 @@ const Popup = () => {
       //text: count.toString() 
     });
   }, [count]);
+
+
+
+  useEffect(() => {
+    console.log('this is hitting only once');
+    const subscription = connectionStatus$.subscribe(value => {
+      setConnectionStatus(value);
+    });
+    return () => {
+      subscription.unsubscribe();
+    }
+  }, []);
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -43,14 +61,26 @@ const Popup = () => {
         <li>Current Time: {new Date().toLocaleTimeString()}</li>
       </ul>
       <button
-        onClick={() => setCount(count + 1)}
+        onClick={() => {
+          setCount(count + 1);
+          myObservable.next(count);
+        }}
         style={{ marginRight: "5px" }}
       >
         count up
       </button>
       <button onClick={changeBackground}>change background</button>
+      <button onClick={reconnect}>Reconnect</button>
+      <button onClick={generateGroupcode}>Generate Groupcode</button>
+      <p>
+        { JSON.stringify(connectionStatus) }
+      </p>
     </>
   );
+
+  function generateGroupcode() {
+    chrome.tabs.create({ url: configUrl });
+  }
 };
 
 ReactDOM.render(
@@ -59,3 +89,10 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById("root")
 );
+
+const myObservable = new BehaviorSubject<number>(0);
+const messaging = ScriptChromeMessagingWithPort.getInstance('popup');
+messaging.sendMessage({
+  type: 'observable',
+  payload: myObservable
+})

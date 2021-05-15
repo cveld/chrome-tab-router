@@ -2,42 +2,12 @@ import * as signalR from "@microsoft/signalr";
 import axios from "axios";
 import { BehaviorSubject } from "rxjs";
 import { filter, tap } from "rxjs/operators";
-import { IMessageType } from "../Messaging/ChromeMessaging";
+import { IMessageType } from '../Shared/MessageModels';
+import { ConnectionStatusEnum, IConnectionStatus } from "../Shared/signalrModels";
 import { groupcode } from "./BackgroundGroupcodeHandler";
 import { apiBaseUrl } from "./settings";
 
-export const enum ConnectionStatusEnum {
-  undefined,
-  connected,
-  disconnected,
-  error,
-  init
-}
-interface IConnectionStatus {
-    status: ConnectionStatusEnum,
-    error?: string,
-    connectionId?: string | null
-};
 export const connectionStatus = new BehaviorSubject<IConnectionStatus>({ status: ConnectionStatusEnum.init });
-connectionStatus.subscribe(value => {
-    if (value.status !== ConnectionStatusEnum.connected) {
-        chrome.browserAction.setTitle({ title: 'websocket connection error' });
-        chrome.browserAction.setBadgeText({ 
-            text: "!"
-        });
-        chrome.browserAction.setBadgeBackgroundColor({
-            color: "#F00"
-        });
-    } else {
-        chrome.browserAction.setTitle({ title: 'Chrome tab router' });
-        chrome.browserAction.setBadgeText({ 
-            text: ""
-        });
-        chrome.browserAction.setBadgeBackgroundColor({
-            color: "#44F"
-        });
-    }    
-});
 
 export let connection : BehaviorSubject<signalR.HubConnection | null> = new BehaviorSubject<signalR.HubConnection | null>(null);
 
@@ -78,3 +48,14 @@ groupcode.pipe(filter(val => Object.keys(val).length !== 0)).subscribe(newgroupc
   connection.next(newconnection);
 });
 
+import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';
+const backgroundChromeMessagingWithPort = BackgroundChromeMessagingWithPort.getInstance('popup');
+connectionStatus.subscribe(newConnectionStatus => {
+  backgroundChromeMessagingWithPort?.sendMessage({
+    type: 'newConnectionStatus',
+    payload: newConnectionStatus
+  });
+});
+backgroundChromeMessagingWithPort!.messageHandlers.set('reconnect', () => {
+  connection.value?.start();
+});

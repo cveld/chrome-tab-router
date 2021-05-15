@@ -1,72 +1,16 @@
-import { chromeInstanceId } from "./BackgroundChromeInstanceIdHandler";
+import './BackgroundChromeInstanceIdHandler';
 import './BackgroundGroupcodeHandler';
+import './UserprofilesHandler';
+import './tabUpdateHandler';
+import './badgeStatusHandler';
+import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';
+import { Observable } from 'rxjs';
+// chrome.windows.onFocusChanged.addListener((...args) => {
+//   console.log('onFocusChanged', args);
+// });
 
-chrome.tabs.onCreated.addListener(async (...args) => {
-  console.log("onCreated:")
-  console.log(args);
-  // chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
-  //   console.log(response.farewell);
-  // });
-  
-  // Make a simple request:
-  chrome.runtime.sendMessage({getTargetData: true},
-    function(response) {    
-      console.log('background sendMessage', response);
-      // if (targetInRange(response.targetData))
-      //   chrome.runtime.sendMessage(laserExtensionId, {activateLasers: true});
-    }
-  );
-});
-
-chrome.tabs.onUpdated.addListener(async (...args) => {
-  console.log("onUpdated:")
-  console.log(args);
-  console.log(`url ${args[2].url}`);
-  const url = args[2].url;
-  if (args[1].status === 'unloaded') {
-    return;
-  }
-  if (url) {
-    const onUpdatedArgs = args;
-    chrome.windows.getAll({
-      populate: true
-    }, async (...args) => {
-      console.log('all windows', args);
-      
-      sendSignalrMessage({ 
-        type: 'tabUpdate', 
-        payload: {
-          url: url,
-          status: onUpdatedArgs[2].status
-        }
-      });
-      const hostname = new URL(url).hostname;
-      if (hostname === 'www.nu.nl') {
-        chrome.tabs.remove(onUpdatedArgs[0]);
-      }    
-    }); // async
-  } // if
-}); // chrome tabs onUpdated
-
-const data = {
-  accesstoken: '',
-  username: '',
-  newMessage: '',
-  messages: [] as Array<IMessage>,
-  ready: false
-};
-
-let counter = 0;
-interface IMessage {
-  id: number
-}
-
-chrome.windows.onFocusChanged.addListener((...args) => {
-  console.log('onFocusChanged', args);
-});
-
-var redirectUrl = chrome.identity.getRedirectURL()
-console.log('redirectUrl', redirectUrl);
+//var redirectUrl = chrome.identity.getRedirectURL()
+//console.log('redirectUrl', redirectUrl);
 /*global chrome*/
 // chrome.identity.launchWebAuthFlow(
 //   {
@@ -87,11 +31,22 @@ console.log('redirectUrl', redirectUrl);
 //   }
 // );
 
-import { connection } from './signalr';
-//connection.on('newMessage', newMessage);
+// the following listener is required to bootstrap the communication to content scripts
+// or else content scripts cannot call chrome.runtime.connect(). This will fail with the error:
+// Could not establish connection. Receiving end does not exist.
+chrome.runtime.onConnect.addListener(function(port) {
+  console.log('background onConnect listener', port);
+  port.onMessage.addListener(function(msg, port) {
+      // May be empty.
+      console.log('background onMessage listener', msg, port);
+  });
+});
 
-import './signalrmessages';
-import { sendSignalrMessage } from "./signalrmessages";
-
-import './UserprofilesHandler';
-import './tabUpdateHandler';
+const messaging = BackgroundChromeMessagingWithPort.getInstance('popup');
+messaging.messageHandlers.set('observable', (message, port) => {
+  console.log('observable', message, port);
+  const ob: Observable<Number> = message.payload;
+  ob.subscribe(next => {
+    console.log('observable next: ', next);
+  })
+});
