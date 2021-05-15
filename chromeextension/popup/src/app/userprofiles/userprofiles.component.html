@@ -1,0 +1,15 @@
+{{userprofiles|async|json}}
+ <table>
+        <thead>
+            <th>Chrome Instance Id</th>
+            <th>Connection Id</th>
+            <th>Last seen</th>
+        </thead>
+        <tbody>
+            <tr *ngFor="let userprofile of userprofiles|async">
+                <td>{{userprofile.chromeInstanceId}}</td>
+                <td>{{userprofile.connectionId}}</td>
+                <td>{{userprofile.lastSeen | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
+            </tr>
+        </tbody>
+</table>

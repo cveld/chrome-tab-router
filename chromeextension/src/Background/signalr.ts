@@ -1,7 +1,7 @@
 import * as signalR from "@microsoft/signalr";
 import axios from "axios";
 import { BehaviorSubject } from "rxjs";
-import { filter, tap } from "rxjs/operators";
+import { connect, filter, tap } from "rxjs/operators";
 import { IMessageType } from '../Shared/MessageModels';
 import { ConnectionStatusEnum, IConnectionStatus } from "../Shared/signalrModels";
 import { groupcode } from "./BackgroundGroupcodeHandler";
@@ -10,6 +10,33 @@ import { apiBaseUrl } from "./settings";
 export const connectionStatus = new BehaviorSubject<IConnectionStatus>({ status: ConnectionStatusEnum.init });
 
 export let connection : BehaviorSubject<signalR.HubConnection | null> = new BehaviorSubject<signalR.HubConnection | null>(null);
+
+function connectionstart(connection: signalR.HubConnection) {
+  connection.start()
+  .then(() => {    
+    connectionStatus.next({ 
+      status: ConnectionStatusEnum.connected,
+      connectionId: connection.connectionId
+    })
+  })
+  .catch(err => {
+      console.error(err);
+      connectionStatus.next({ status: ConnectionStatusEnum.error, error: err })
+  });
+}
+
+function connectionstop(connection: signalR.HubConnection) {
+  connection.stop()
+  .then(() => {    
+    connectionStatus.next({ 
+      status: ConnectionStatusEnum.disconnected      
+    })
+  })
+  .catch(err => {
+      console.error(err);
+      connectionStatus.next({ status: ConnectionStatusEnum.error, error: err })
+  });
+}
 
 groupcode.pipe(filter(val => Object.keys(val).length !== 0)).subscribe(newgroupcode => {
   const groupcodeAuthorization = newgroupcode.signature!;
@@ -28,18 +55,7 @@ groupcode.pipe(filter(val => Object.keys(val).length !== 0)).subscribe(newgroupc
     .build();
 
   console.log('Connecting...');
-  newconnection.start()
-    .then(() => {
-      newconnection.connectionId
-      connectionStatus.next({ 
-        status: ConnectionStatusEnum.connected,
-        connectionId: newconnection.connectionId
-      })
-    })
-    .catch(err => {
-        console.error(err);
-        connectionStatus.next({ status: ConnectionStatusEnum.error, error: err })
-    });
+  connectionstart(newconnection);
 
   newconnection.onclose(() => {
     console.log('disconnected');
@@ -49,6 +65,7 @@ groupcode.pipe(filter(val => Object.keys(val).length !== 0)).subscribe(newgroupc
 });
 
 import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';
+import { HubConnectionState } from "@microsoft/signalr";
 const backgroundChromeMessagingWithPort = BackgroundChromeMessagingWithPort.getInstance('popup');
 connectionStatus.subscribe(newConnectionStatus => {
   backgroundChromeMessagingWithPort?.sendMessage({
@@ -57,5 +74,13 @@ connectionStatus.subscribe(newConnectionStatus => {
   });
 });
 backgroundChromeMessagingWithPort!.messageHandlers.set('reconnect', () => {
-  connection.value?.start();
+  if (!connection.value) {
+    return;
+  }
+  if (connection.value.state === HubConnectionState.Connected) {
+    connectionstop(connection.value);
+  }
+  else {
+    connectionstart(connection.value);
+  }
 });

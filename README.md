@@ -11,5 +11,7 @@ The solution comprises two parts:
 - Angular extension page: chromeextension/popup
 # Implementation
 Execute the following steps to run the solution locally:
+* install func global tool
 * npm run install:all
 * npm run watch:all
+* add chromeextension/dist folder as an unpacked chrome extension

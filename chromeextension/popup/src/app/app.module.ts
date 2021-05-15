@@ -7,13 +7,15 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { GroupcodeComponent } from './groupcode/groupcode.component';
 import { PopupComponent } from './popup/popup.component';
 import { HomeComponent } from './home/home.component';
+import { UserprofilesComponent } from './userprofiles/userprofiles.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     GroupcodeComponent,
     PopupComponent,
-    HomeComponent
+    HomeComponent,
+    UserprofilesComponent
   ],
   imports: [
     BrowserModule,

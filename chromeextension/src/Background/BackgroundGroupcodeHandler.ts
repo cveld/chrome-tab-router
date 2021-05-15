@@ -24,21 +24,16 @@ chrome.storage.local.get('groupcode', value => {
   groupcodevalue.encoded = value.groupcode;
   groupcode.next(groupcodevalue);
 });
-chrome.storage.onChanged.addListener((changes, areaName) => {
-    for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
-        if (key === 'groupcode') {            
-          const groupcodestring = atob(newValue);
-          const groupcodevalue = JSON.parse(groupcodestring);
-          groupcodevalue.encoded = newValue;
-          groupcode.next(groupcodevalue);
-          console.log(`new groupcode value: ${groupcodevalue}`);
-        }
-        console.log(
-          `Storage key "${key}" in namespace "${areaName}" changed.`,
-          `Old value was "${JSON.stringify(oldValue)}", new value is "${JSON.stringify(newValue)}".`
-        );
-    }
-});
+import {listeners } from './chromestorage';
+
+listeners.set('groupcode', (oldValue, newValue) => {           
+    const groupcodestring = atob(newValue);
+    const groupcodevalue = JSON.parse(groupcodestring);
+    groupcodevalue.encoded = newValue;
+    groupcode.next(groupcodevalue);
+    console.log(`new groupcode value: ${groupcodevalue}`);
+  }
+);
 
 function setGroupcodeHandler(request: IMessageType, sender: chrome.runtime.MessageSender, sendResponse: any) {    
   console.log(request.payload);

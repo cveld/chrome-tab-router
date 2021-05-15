@@ -14,13 +14,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   const encryptedGroupcode = req.headers.groupcodeauthorization;    
   const clientprincipalnamestring = decrypt(encryptedGroupcode); 
-  context.res = {
-    body: {
-      "req.headers.groupcodeauthorization": req.headers.groupcodeauthorization,
-      "clientprincipalnamestring": clientprincipalnamestring
-    }
-  } 
-  return
+  // context.res = {
+  //   body: {
+  //     "req.headers.groupcodeauthorization": req.headers.groupcodeauthorization,
+  //     "clientprincipalnamestring": clientprincipalnamestring
+  //   }
+  // } 
+  // return
   const clientprincipalname = JSON.parse(clientprincipalnamestring);  
 
   context.res = {
@@ -30,7 +30,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
   };
   return {
     "userId": clientprincipalname.groupcode,
-    "target": req.body.message.type,
+    "target": req.body.type,
     "arguments": [ req.body ]
   };
 };

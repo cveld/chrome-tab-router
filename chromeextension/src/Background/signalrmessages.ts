@@ -7,8 +7,10 @@ import { connection } from './signalr';
 import { IMessageStatus, MessageStatusEnum } from '../Shared/MessageStatusModels';
 export const messageStatus = new BehaviorSubject<IMessageStatus>({ status: MessageStatusEnum.init });
     
-interface ISignalrMessage {
+export interface ISignalrMessage {
     type: string,
+    chromeinstanceid?: string,
+    connectionid?: string,
     payload?: any
 }
 
@@ -19,9 +21,9 @@ export async function sendSignalrMessage(message: ISignalrMessage) {
   const groupcodeAuthorization = groupcode.value.signature;
     try {
       const result = await axios.post(`${apiBaseUrl}/api/messages`, {
+        ...message,
         chromeinstanceid: chromeInstanceId.value,
-        connectionid: connection.value?.connectionId,
-        message: message
+        connectionid: connection.value?.connectionId        
       }, {
         headers: {
           groupcodeauthorization: groupcodeAuthorization
