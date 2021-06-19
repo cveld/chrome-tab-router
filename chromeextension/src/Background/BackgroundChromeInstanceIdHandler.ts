@@ -2,6 +2,7 @@ import { BehaviorSubject, ReplaySubject } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { messageHandlers, sendMessage } from '../Messaging/ChromeMessaging';
 import { IMessageType } from '../Shared/MessageModels';
+import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';
 
 export const chromeInstanceId = new BehaviorSubject<string>('');
 
@@ -18,3 +19,11 @@ function getchromeinstanceidHandler(request: IMessageType, sender: chrome.runtim
 }
 
 messageHandlers.set('getchromeinstanceid', getchromeinstanceidHandler);
+
+const popupmessaging = BackgroundChromeMessagingWithPort.getInstance('popup');
+popupmessaging.messageHandlers.set('getchromeinstanceid', (message, port) => {
+  port.postMessage({
+    type: 'chromeinstanceid',
+    payload: chromeInstanceId.value
+  });
+});

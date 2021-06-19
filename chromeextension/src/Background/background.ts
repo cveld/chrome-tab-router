@@ -1,6 +1,7 @@
 import './BackgroundChromeInstanceIdHandler';
 import './BackgroundGroupcodeHandler';
 import './UserprofilesHandler';
+import './rulesHandler';
 import './tabUpdateHandler';
 import './badgeStatusHandler';
 import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';

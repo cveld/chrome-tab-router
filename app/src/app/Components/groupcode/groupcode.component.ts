@@ -22,4 +22,7 @@ export class GroupcodeComponent implements OnInit {
   submitClicked() {
     this.groupcodeHandler.setGroupcode(this.enteredGroupcode!);
   }
+  async copyClicked() {        
+    await navigator.clipboard.writeText(this.groupcode.value);
+  }
 }

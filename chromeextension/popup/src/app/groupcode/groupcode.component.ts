@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { GroupcodeHandler } from '../services/groupcodeHandler';
 import { configUrl } from '../shared/settings';
 @Component({
@@ -9,7 +9,7 @@ import { configUrl } from '../shared/settings';
 export class GroupcodeComponent implements OnInit {
   constructor(private groupcodeHandler: GroupcodeHandler) {}
   groupcode = this.groupcodeHandler.groupcode;
-
+  enteredGroupcode: string = '';  
   ngOnInit(): void {
   }
 
@@ -19,5 +19,11 @@ export class GroupcodeComponent implements OnInit {
     })
   }
 
-  submitClicked(): void {}
+  submitClicked(): void {
+    this.groupcodeHandler.setGroupcode(this.enteredGroupcode!);
+  }
+
+  async copyClicked() {        
+    await navigator.clipboard.writeText(this.groupcode.value);
+  }
 }

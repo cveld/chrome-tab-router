@@ -9,7 +9,7 @@ import { AzureAuthentication } from 'src/app/Services/AzureAuthentication';
 export class AzureAuthenticationComponent implements OnInit {
 
   constructor(public azureAuthentication: AzureAuthentication) { }
-  authMe = this.azureAuthentication.authMe();
+  authMe$ = this.azureAuthentication.authMe();
   isLoggedIn = this.azureAuthentication.isLoggedIn;
   ngOnInit(): void {
   }

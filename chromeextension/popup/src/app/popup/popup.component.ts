@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { GroupcodeHandler } from '../services/groupcodeHandler';
-import { signalrHandler } from '../services/signalrhandler';
 @Component({
   selector: 'app-popup',
   templateUrl: './popup.component.html',
@@ -8,12 +7,15 @@ import { signalrHandler } from '../services/signalrhandler';
 })
 export class PopupComponent implements OnInit {
   groupcode = this.groupcodeHandler.groupcode;
-  constructor(private groupcodeHandler: GroupcodeHandler, private signalrHandler: signalrHandler) { }
+  constructor(private groupcodeHandler: GroupcodeHandler) { }
 
   ngOnInit(): void {    
   }
 
-  reconnectClicked() {
-    this.signalrHandler.reconnect();
+  openPage() {
+    const url = chrome.extension.getURL('popup/index.html');
+    chrome.tabs.create({
+      url: url
+    });
   }
 }

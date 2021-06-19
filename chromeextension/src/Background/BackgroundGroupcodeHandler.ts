@@ -24,7 +24,7 @@ chrome.storage.local.get('groupcode', value => {
   groupcodevalue.encoded = value.groupcode;
   groupcode.next(groupcodevalue);
 });
-import {listeners } from './chromestorage';
+import { listeners } from './chromestorage';
 
 listeners.set('groupcode', (oldValue, newValue) => {           
     const groupcodestring = atob(newValue);

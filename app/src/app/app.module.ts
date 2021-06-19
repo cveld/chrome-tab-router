@@ -9,6 +9,7 @@ import { AzureAuthenticationComponent } from './Components/azure-authentication/
 import { HttpClientModule } from '@angular/common/http';
 import { GroupcodeComponent } from './Components/groupcode/groupcode.component';
 import { FormsModule } from '@angular/forms';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { FormsModule } from '@angular/forms';
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    FormsModule
+    FormsModule,
+    NgbModule
   ],
   providers: [
     { provide: APP_INITIALIZER, useFactory: init, deps: [], multi: true }

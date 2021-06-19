@@ -1,5 +1,7 @@
 export interface IUserProfileStatus {
-    chromeInstanceId: string,
-    connectionId: string,
-    lastSeen: number
+    name?: string,
+    chromeInstanceId?: string,
+    connectionId?: string,
+    lastSeen?: number,
+    updated?: number
 }

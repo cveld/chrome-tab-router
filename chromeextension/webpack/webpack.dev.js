@@ -2,6 +2,7 @@
 
 const merge = require('webpack-merge');
 const common = require('./webpack.common.js');
+const webpack = require('webpack');
 
 module.exports = merge(common, {
     devtool: 'inline-source-map',
@@ -13,4 +14,12 @@ module.exports = merge(common, {
     //         entryName: 'background'
     //     })
     // ]
+    plugins: [
+        // apply this plugin only to .ts files - the rest is taken care of
+        new webpack.SourceMapDevToolPlugin({
+          filename: null,
+          exclude: [/node_modules/],
+          test: /\.ts($|\?)/i
+        })
+    ]
 });

@@ -1,31 +1,49 @@
-<h1>Groupcode</h1>
-<p>
-    The groupcode defines the set of Chrome user profiles that work together.
-</p>
-<p>
-    You have two options:
-</p>
-<ol>
-    <li>Generate a new groupcode</li>
-    <li>Reuse a generated groupcode</li>
-</ol>
-<p>
-    Currently active groupcode:
-</p>
-<p *ngIf="!!(groupcode | async); else nogroupcode">    
-    {{ groupcode | async }}
-</p>
-<ng-template #nogroupcode>
-    <i>No groupcode assigned yet</i>
-</ng-template>
+<div class="row">
+    <div class="md-12">
+        <h3>Groupcode</h3>
+        <p>
+            The groupcode defines the set of Chrome user profiles that work together.
+        </p>
+        <p>
+            You have two options:
+        </p>
+        <ol>
+            <li>Generate a new groupcode</li>
+            <li>Reuse a generated groupcode</li>
+        </ol>
+        <p>
+            Currently active groupcode:
+        </p>
+    </div>
+</div>
+<div class="row">
+    <div class="md-4">
+        <span class="d-inline-block text-truncate" style="max-width: 150px;" *ngIf="!!(groupcode | async); else nogroupcode">
+            {{ groupcode | async }}
+        </span>  
+        <ng-template #nogroupcode>
+            <i>No groupcode assigned yet</i>
+        </ng-template>
+    </div>
+    <div class="md-4" *ngIf="!!(groupcode | async)">
+        <button class="btn btn-secondary mr-1 mb-1" (click)="copyClicked()">
+            <i class="bi-files" style="font-size: 1rem;"></i> Copy
+        </button>
+    </div>
+</div>
 
+<div class="row">
+    <div class="md-12">
+        <h2>Generate</h2>
+        <p><button class="btn btn-primary" (click)="generateClicked()">Generate</button></p>
 
-<h2>Generate</h2>
-<p><button (click)="generateClicked()">Generate</button></p>
-
-<h2>Reuse existing code</h2>
-<p>    
-    <textarea [(ngModel)]='enteredGroupcode' rows="5" cols="40">                             
-    </textarea>
-    <button (click)="submitClicked()">Submit</button>
-</p>
+        <h2>Reuse existing code</h2>
+        <p>    
+            <textarea [(ngModel)]='enteredGroupcode' rows="5" cols="40">                             
+            </textarea>
+        </p>
+        <p>
+            <button class="btn btn-secondary" (click)="submitClicked()">Submit</button>
+        </p>
+    </div>
+</div>

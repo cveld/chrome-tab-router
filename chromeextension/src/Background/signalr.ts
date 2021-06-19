@@ -21,7 +21,8 @@ function connectionstart(connection: signalR.HubConnection) {
   })
   .catch(err => {
       console.error(err);
-      connectionStatus.next({ status: ConnectionStatusEnum.error, error: err })
+      connectionStatus.next({ status: ConnectionStatusEnum.error, error: err });
+      runConnect();
   });
 }
 
@@ -59,7 +60,8 @@ groupcode.pipe(filter(val => Object.keys(val).length !== 0)).subscribe(newgroupc
 
   newconnection.onclose(() => {
     console.log('disconnected');
-    connectionStatus.next({ status: ConnectionStatusEnum.disconnected });
+    connectionStatus.next({ status: ConnectionStatusEnum.disconnected, error: 'Disconnected' });
+    runConnect();
   });
   connection.next(newconnection);
 });
@@ -69,11 +71,17 @@ import { HubConnectionState } from "@microsoft/signalr";
 const backgroundChromeMessagingWithPort = BackgroundChromeMessagingWithPort.getInstance('popup');
 connectionStatus.subscribe(newConnectionStatus => {
   backgroundChromeMessagingWithPort?.sendMessage({
-    type: 'newConnectionStatus',
+    type: 'ConnectionStatus',
     payload: newConnectionStatus
   });
 });
-backgroundChromeMessagingWithPort!.messageHandlers.set('reconnect', () => {
+backgroundChromeMessagingWithPort.messageHandlers.set('getconnectionstatus', (message, port) => {
+  backgroundChromeMessagingWithPort.sendMessage({ 
+    type: 'ConnectionStatus',
+    payload: connectionStatus.value
+   });
+});
+backgroundChromeMessagingWithPort.messageHandlers.set('reconnect', () => {
   if (!connection.value) {
     return;
   }
@@ -84,3 +92,28 @@ backgroundChromeMessagingWithPort!.messageHandlers.set('reconnect', () => {
     connectionstart(connection.value);
   }
 });
+
+const backoffschedule = [0, 5, 15, 30, 60];
+let backoffIndex = 0;
+const backoffreset = 60*5*1000; // 5 minutes
+let disconnectBackoff = 0;
+
+let timeoutfunc : NodeJS.Timeout;
+function runConnect() {
+  const currenttimestamp = Date.now();
+  console.log('runConnect', currenttimestamp, disconnectBackoff, disconnectBackoff - currenttimestamp);
+  if (disconnectBackoff < currenttimestamp) {  
+    if (disconnectBackoff + backoffreset < currenttimestamp) {
+      backoffIndex = 0;
+    }
+    else {
+      backoffIndex++;
+    }
+    disconnectBackoff = currenttimestamp + backoffschedule[Math.min(backoffIndex, backoffschedule.length-1)]*1000;
+    connectionstart(connection.value!);
+    clearTimeout(timeoutfunc);
+  }
+  else {
+    timeoutfunc = setTimeout(runConnect, disconnectBackoff - currenttimestamp);
+  }
+}

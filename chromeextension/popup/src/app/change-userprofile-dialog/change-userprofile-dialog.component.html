@@ -1,0 +1,20 @@
+<div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Profile update</h4>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">      
+<form>
+    <div class="form-group">
+        <label for="code">Chrome userprofile code</label>
+        <input [(ngModel)]='userprofile.chromeInstanceId' disabled="true" type="text" class="form-control" id="code" name="code">
+    </div>
+
+    <div class="form-group">
+        <label for="name">Chrome userprofile name</label>
+        <input [(ngModel)]='userprofile.name' type="text" class="form-control" id="userprofile" name="name" placeholder="Enter Chrome userprofile name">
+    </div>
+    <button class="btn btn-primary" (click)="changeClicked()">Change</button>
+</form>
+</div>
