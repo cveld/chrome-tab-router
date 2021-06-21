@@ -1,5 +1,5 @@
 export interface IRule {
-    regex?: RegExp,
+    regex?: RegExp|string,
     targetUserprofile?: string,
     id?: string,
     updated?: number,

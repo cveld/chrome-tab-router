@@ -1,6 +1,7 @@
 npm-debug.log
 node_modules/
 dist/
+distprod/
 tmp/
 
 #src/settings/settings.json

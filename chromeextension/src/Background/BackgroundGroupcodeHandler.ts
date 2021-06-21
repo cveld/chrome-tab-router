@@ -53,6 +53,10 @@ function launchConfig() {
 
 const popupmessaging = BackgroundChromeMessagingWithPort.getInstance('popup');
 
+popupmessaging.messageHandlers.set('groupcode', (message, port) => {
+  chrome.storage.local.set({ 'groupcode': message.payload });  
+});
+
 groupcode.subscribe(next => {
   popupmessaging.sendMessage({
     type: 'groupcode',

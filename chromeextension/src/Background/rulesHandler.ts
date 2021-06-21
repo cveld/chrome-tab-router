@@ -7,7 +7,10 @@ import {v4 as uuidv4} from 'uuid';
 export let rules = new Array<IRule>();
 export function checkUrl(url: string): string | undefined {
     const index = rules.findIndex(value => {
-        return value.regex!.test(url);
+      if (!value.deleted && value.regex) {
+        const regex = new RegExp(value.regex)     
+        return regex.test(url);
+      }
     });
     if (index === -1) {
         return undefined;
@@ -28,7 +31,7 @@ chrome.storage.local.get('rules', value => {
   if (!value.rules) {
     rules = new Array<IRule>();
   }
-  else {
+  else {    
     rules = value.rules;
   }
 });

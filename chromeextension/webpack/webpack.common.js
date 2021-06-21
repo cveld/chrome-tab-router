@@ -10,10 +10,6 @@ module.exports = {
       background: path.join(srcDir, 'Background/background.ts'),
       content_script: path.join(srcDir, 'Content/content_script.tsx'),
     },
-    output: {
-        path: path.join(__dirname, "../dist/js"),
-        filename: "[name].js",
-    },
     optimization: {
         splitChunks: {
             name: "vendor",

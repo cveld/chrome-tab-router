@@ -5,6 +5,10 @@ const common = require('./webpack.common.js');
 const webpack = require('webpack');
 
 module.exports = merge(common, {
+    output: {
+      filename: "[name].js",
+      path: path.join(__dirname, "../dist/js"),
+    },
     devtool: 'inline-source-map',
     mode: 'development',
     // plugins: [

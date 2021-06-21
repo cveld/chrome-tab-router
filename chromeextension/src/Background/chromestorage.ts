@@ -6,9 +6,9 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
         if (listeners.has(key)) {
             listeners.get(key)!(oldValue, newValue);
         }
-        console.log(
-            `Storage key "${key}" in namespace "${areaName}" changed.`,
-            `Old value was "${JSON.stringify(oldValue)}", new value is "${JSON.stringify(newValue)}".`
-        );
+        // console.log(
+        //     `Storage key "${key}" in namespace "${areaName}" changed.`,
+        //     `Old value was "${JSON.stringify(oldValue)}", new value is "${JSON.stringify(newValue)}".`
+        // );
     }
 });

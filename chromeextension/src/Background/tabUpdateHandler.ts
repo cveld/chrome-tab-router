@@ -3,7 +3,10 @@ import { chromeInstanceId } from './BackgroundChromeInstanceIdHandler';
 import { checkUrl } from './rulesHandler';
 import { addHandler, sendSignalrMessage } from './signalrmessages';
 import { ITabStatus, TabStatusEnum } from '../Shared/TabStatusModels';
+
+// List that captures the handling state of a created tab
 const tabs = new Set<number>();
+const navigatedTabs = new Map<number, chrome.webNavigation.WebNavigationParentedCallbackDetails>();
 
 let log: Array<ITabStatus>;
 
@@ -40,26 +43,27 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (tabs.has(tabId)) {
       console.log('tabUpdated:', tabId, changeInfo, tab);
       tabs.delete(tabId);
-      const match = checkUrl(changeInfo.url!);
+      const url = navigatedTabs.get(tabId)?.url!;
+      const match = checkUrl(url);
       const self = match === chromeInstanceId.value;
-      if (!self) {
+      if (!self && !changeInfo.url?.startsWith('chrome-extension://')) {
         addLogline({
           tabId: tabId,
           status: match ? (self ? TabStatusEnum.Self : TabStatusEnum.Routing) : TabStatusEnum.Unmatched,
-          url: changeInfo.url!,
+          url: url,
           targetUserprofile: match
         });
-      }
-      if (match && !self) {
-        sendSignalrMessage({
-          type: 'openurl',
-          payload: {
-            url: changeInfo.url,
-            originaltab: tabId,
-            originalUserprofile: chromeInstanceId.value,
-            targetUserprofile: match
-          }
-        });
+        if (match) {
+          sendSignalrMessage({
+            type: 'openurl',
+            payload: {
+              url: url,
+              originaltab: tabId,
+              originalUserprofile: chromeInstanceId.value,
+              targetUserprofile: match
+            }
+          });
+        }
       }
     }
   }
@@ -148,6 +152,13 @@ function updateLoglineToRemovedState(tabId: number) {
     return;
   }
   log[idx].status = TabStatusEnum.Removed;
+  chrome.storage.local.set({
+    'log': log
+  });
+  popupmessaging.sendMessage({ 
+    type: 'log', 
+    payload: log
+  });
 }
 
 function addLogline(logline: ITabStatus) {
@@ -169,3 +180,7 @@ chrome.storage.local.get('log', value => {
     log = value.log;
   }
 });
+
+chrome.webNavigation.onBeforeNavigate.addListener((details) => {  
+  navigatedTabs.set(details.tabId, details);
+})

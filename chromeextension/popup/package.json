@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve --plugin ~build-customization-plugin.js",
     "build": "ng build --plugin ~build-customization-plugin.js",
+    "prod": "ng build --prod --output-path=../distprod/popup",
     "build:watch": "ng build --watch --plugin ~build-customization-plugin.js",
     "test": "ng test",
     "lint": "ng lint",

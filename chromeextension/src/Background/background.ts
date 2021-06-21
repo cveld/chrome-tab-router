@@ -43,11 +43,10 @@ chrome.runtime.onConnect.addListener(function(port) {
   });
 });
 
-const messaging = BackgroundChromeMessagingWithPort.getInstance('popup');
-messaging.messageHandlers.set('observable', (message, port) => {
-  console.log('observable', message, port);
-  const ob: Observable<Number> = message.payload;
-  ob.subscribe(next => {
-    console.log('observable next: ', next);
-  })
+chrome.browserAction.onClicked.addListener((tab) => {
+  const url = chrome.extension.getURL('popup/index.html');
+  chrome.tabs.create({
+    url: url
+  });
 });
+
