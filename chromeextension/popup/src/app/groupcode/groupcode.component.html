@@ -1,0 +1,37 @@
+<div class="row">
+    <div class="md-12">
+<h3>Configured groupcode</h3>
+    </div>
+</div>
+<div class="row">
+    <div class="md-4">
+        <span class="d-inline-block text-truncate" style="max-width: 150px;" *ngIf="!!(groupcode | async); else nogroupcode">
+            {{ groupcode | async }}
+        </span>       
+        <ng-template #nogroupcode>
+            <i>No groupcode assigned yet</i>
+        </ng-template>
+    </div>
+    <div class="md-4" *ngIf="!!(groupcode | async)">
+        <button class="btn btn-secondary mr-1 mb-1" (click)="copyClicked()">
+            <i class="bi-files" style="font-size: 1rem;"></i> Copy
+        </button>
+    </div>
+</div>
+<div class="row">
+    <div class="md-12">
+        <h3>New groupcode</h3>
+        <p>If you don't have a groupcode generated yet, click the button. This will bring you to the groupcode generation app.</p>
+        <p><button class="btn btn-primary mr-1 mb-1" (click)='generateClicked()'>Generate</button></p>
+
+        <h3>Existing groupcode</h3>
+
+        <p>If you already have a groupcode, submit it here.</p>
+        <textarea [(ngModel)]='enteredGroupcode' rows="5" cols="40">                             
+        </textarea>
+
+        <p>
+        <button class="btn btn-secondary" (click)='submitClicked()'>Submit</button>
+        </p>
+    </div>
+</div>  

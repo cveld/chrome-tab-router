@@ -1,0 +1,36 @@
+{
+  "name": "chrome-tab-router",
+  "version": "1.0.0",
+  "description": "Routes incoming links to preferred Chrome user profiles",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  },
+  "scripts": {
+    "chromeextension:popup:build:watch": "npm run --prefix chromeextension/popup build:watch",
+    "chromeextension:scripts:build:watch": "npm run --prefix chromeextension watch",
+    "chromeextension:scripts:build:prod": "npm run --prefix chromeextension build",
+    "chromeextension:popup:build:prod": "npm run --prefix chromeextension/popup prod",
+    "func:start": "npm run --prefix api start",
+    "func:build:watch": "npm run --prefix api watch",
+    "app:start": "npm run --prefix app start",    
+    "watch:all": "npm-run-all --parallel func:start chromeextension:popup:build:watch chromeextension:scripts:build:watch func:build:watch app:start",
+    "install:all": "npm-run-all chromeextension:popup:install chromeextension:scripts:install func:install app:install",
+    "chromeextension:popup:install": "npm run --prefix chromeextension/popup install",
+    "chromeextension:scripts:install": "npm run --prefix chromeextension install",
+    "func:install": "npm run --prefix api install",
+    "app:install": "npm run --prefix app install",    
+    "chromeextension:prod": "npm-run-all --parallel chromeextension:popup:build:prod chromeextension:scripts:build:prod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cveld/chrome-tab-router.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cveld/chrome-tab-router/issues"
+  },
+  "homepage": "https://github.com/cveld/chrome-tab-router#readme"
+}

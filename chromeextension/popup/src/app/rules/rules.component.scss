@@ -1,0 +1,12 @@
+// tr * { pointer-events: none; }
+.hoveractions {
+    display: none;    
+}
+
+tr:hover {
+    cursor: pointer;
+    .hoveractions {
+        display: block;
+        cursor: pointer;
+    }
+}

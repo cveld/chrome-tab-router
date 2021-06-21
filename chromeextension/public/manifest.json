@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json.schemastore.org/chrome-manifest",
+  "manifest_version": 2,
+
+  "name": "Chrome Tab Router",
+  "description": "Routes urls to desired user profiles",
+  "version": "0.5",
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true
+  },
+
+  "browser_action": {
+    "default_icon": "icon.png"    
+  },
+  "icons": {
+    "16": "icon.png"
+  },
+  "content_scripts": [
+      {
+          "matches": ["http://localhost:4200", "https://*.azurestaticapps.net"],
+          "js": ["js/vendor.js", "js/content_script.js"]
+      }
+  ],
+
+  "background": {
+    "scripts": ["js/vendor.js", "js/background.js"]
+  },
+
+  "permissions": [
+    "storage",    
+    "tabs",
+    "<all_urls>",    
+    "webNavigation"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}

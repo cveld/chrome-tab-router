@@ -1,0 +1,34 @@
+<div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">
+      <ng-container *ngIf="!changemode">Add rule</ng-container>
+      <ng-container *ngIf="changemode">Change rule</ng-container>
+    </h4>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+<form>
+    <div class="form-group">
+        <label for="regex">Regex</label>
+        <input [(ngModel)]='rule.regex' type="text" class="form-control" id="regex" name="regex" placeholder="Enter regular expression">
+    </div>
+
+    <div class="form-group">
+      <label for="userprofile">Chrome userprofile target</label>
+      <select class="form-control" id="userprofile" name="userprofile" [(ngModel)]='rule.targetUserprofile'>
+        <option *ngFor="let userprofile of userprofiles$|async" [attr.value]="userprofile.chromeInstanceId">
+          <span *ngIf="userprofile.name; else noname">{{userprofile.name}}</span>
+          <ng-template #noname>
+            {{userprofile.chromeInstanceId}}
+          </ng-template>
+          <span *ngIf="(chromeinstanceid$|async) === userprofile.chromeInstanceId">&nbsp;(current)</span>
+        </option>
+      </select>
+    </div>
+    <button class="btn btn-primary" (click)="addClicked()">
+      <ng-container *ngIf="!changemode">Add</ng-container>
+      <ng-container *ngIf="changemode">Change</ng-container>
+    </button>
+</form>
+</div>

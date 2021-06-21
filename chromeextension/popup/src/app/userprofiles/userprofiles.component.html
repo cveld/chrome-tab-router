@@ -1,0 +1,21 @@
+
+ <table class="table table-responsive table-hover">
+        <thead class="thead-light">
+            <th>Name</th>
+            <th>Chrome Instance Id</th>
+            <th>Connection Id</th>
+            <th>Last seen</th>
+            <th>Updated</th>
+        </thead>
+        <tbody>
+            <tr *ngFor="let userprofile of userprofiles|async" (click)="rowClicked(userprofile)" style="cursor: pointer">
+                <td>{{userprofile.name}}<ng-container *ngIf="(chromeinstanceid$ | async) === userprofile.chromeInstanceId"> (current)</ng-container></td>
+                <td>{{userprofile.chromeInstanceId}}</td>
+                <td>{{userprofile.connectionId}}</td>
+                <td>{{userprofile.lastSeen | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
+                <td>{{userprofile.updated| date: 'yyyy-MM-dd HH:mm:ss'}}</td>
+            </tr>
+        </tbody>
+</table>
+
+{{closeResult}}

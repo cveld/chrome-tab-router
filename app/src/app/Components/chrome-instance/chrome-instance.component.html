@@ -1,0 +1,12 @@
+<div class="row">
+    <div class="md-12">
+        <p *ngIf="!!(contentScriptReady$ | async); else noextension">    
+            ChromeInstanceId = {{ chromeInstanceId }}<br>
+            ContentScriptReady = {{contentScriptReady$ | async}}<br>
+            <b>Chrome tab router extension found</b>
+        </p>
+        <ng-template #noextension>
+            <i>Chrome tab router extension not found. Please go to the Chrome extension gallery and install it.</i>
+        </ng-template>
+    </div>
+</div>

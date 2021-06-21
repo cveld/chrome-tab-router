@@ -1,4 +1,7 @@
 {
+    "[ts]": {
+        "editor.tabSize": 2,
+    },
     "azureFunctions.deploySubpath": "api",
     "azureFunctions.postDeployTask": "npm install",
     "azureFunctions.projectLanguage": "TypeScript",
@@ -9,5 +12,5 @@
         "enable": true,
         "baseUri": "/api",
         "proxyUri": "http://127.0.0.1:7071/api"
-     }
+    }    
 }
