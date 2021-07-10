@@ -17,25 +17,37 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         return;
     }
 
-    const clientprincipalnameString = Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString();
-    const clientprincipalname = JSON.parse(clientprincipalnameString);
-    clientprincipalname.groupcode = uuidv4();
-    const result = encrypt(JSON.stringify(clientprincipalname));
-    //const result = 3;   
+    try {
 
-    context.res = {
-        // status: 200, /* Defaults to 200 */
-        body: {
-            // responseMessage: responseMessage,
-            // headers: req.headers,
-            clientprincipalname: clientprincipalname,
-            signature: result,
-            encoded: Buffer.from(JSON.stringify({
+        const clientprincipalnameString = Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString();
+        const clientprincipalname = JSON.parse(clientprincipalnameString);
+        clientprincipalname.groupcode = uuidv4();
+        const result = encrypt(JSON.stringify(clientprincipalname));
+        //const result = 3;   
+
+        context.res = {
+            // status: 200, /* Defaults to 200 */
+            body: {
+                // responseMessage: responseMessage,
+                // headers: req.headers,
                 clientprincipalname: clientprincipalname,
-                signature: result
-            })).toString('base64')            
+                signature: result,
+                encoded: Buffer.from(JSON.stringify({
+                    clientprincipalname: clientprincipalname,
+                    signature: result
+                })).toString('base64')            
+            }
+        };
+
+    }
+    catch(e) {
+        context.res = {
+            status: 500,
+            body: {
+                message: e
+            }
         }
-    };
+    }
 
 };
 
