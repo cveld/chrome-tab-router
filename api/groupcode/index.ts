@@ -10,19 +10,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         ? "Hello, " + name + ". This HTTP triggered function executed successfully."
         : "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.";
     
-    context.res = {
-        body: req.headers
-    }
-    return;
-
-    if (!req.headers['x-ms-client-principal-name']) {
+    if (!req.headers['x-ms-client-principal']) {
         context.res = {
             status: 401
         }
         return;
     }
 
-    const clientprincipalnameString = Buffer.from(req.headers['x-ms-client-principal-name'], 'base64').toString();
+    const clientprincipalnameString = Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString();
     const clientprincipalname = JSON.parse(clientprincipalnameString);
     clientprincipalname.groupcode = uuidv4();
     const result = encrypt(JSON.stringify(clientprincipalname));
