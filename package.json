@@ -9,7 +9,7 @@
   },
   "scripts": {
     "chromeextension:popup:build:watch": "npm run --prefix chromeextension/popup build:watch",
-    "chromeextension:scripts:build:watch": "npm run --prefix chromeextension watch",
+    "chromeextension:scripts:build:watch": "npm run --prefix chromeextension build:watch",
     "chromeextension:scripts:build:prod": "npm run --prefix chromeextension build",
     "chromeextension:popup:build:prod": "npm run --prefix chromeextension/popup build:prod",
     "func:start": "npm run --prefix api start",
