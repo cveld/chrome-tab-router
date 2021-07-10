@@ -1,13 +1,13 @@
 import { BehaviorSubject } from 'rxjs';
 
-const eventListenerId = 'chrome-tab-router-content';
-const eventDispatchTargetId = 'chrome-tab-router-page';
+export const eventListenerId = 'chrome-tab-router-content';
+export const eventDispatchTargetId = 'chrome-tab-router-page';
 
 document.addEventListener(eventListenerId, (customEvent) => {
   const event = (customEvent as CustomEvent).detail as IEventType;
   if (eventHandlers.has(event.type)) {
     const func = eventHandlers.get(event.type);
-    func!(event);
+    func!(event, customEvent.type);
   }
 });
 

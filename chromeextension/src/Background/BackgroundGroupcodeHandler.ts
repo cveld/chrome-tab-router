@@ -8,7 +8,8 @@ interface IGroupcode {
   clientprincipalname?: {
     groupcode: string
   },
-  signature?: string
+  signature?: string,
+  encoded?: string
 }
 export const groupcode = new BehaviorSubject<IGroupcode>({});
 // the chrome storage contains the mime64 wrapped version
@@ -19,17 +20,18 @@ chrome.storage.local.get('groupcode', value => {
     launchConfig();
     return;
   }
-  const groupcodestring = atob(value.groupcode);
+    
+  const groupcodestring = atob(value.groupcode.encoded);
   const groupcodevalue = JSON.parse(groupcodestring);
   groupcodevalue.encoded = value.groupcode;
   groupcode.next(groupcodevalue);
 });
 import { listeners } from './chromestorage';
 
-listeners.set('groupcode', (oldValue, newValue) => {           
-    const groupcodestring = atob(newValue);
-    const groupcodevalue = JSON.parse(groupcodestring);
-    groupcodevalue.encoded = newValue;
+listeners.set('groupcode', (oldValue: IGroupcode|null, newValue: IGroupcode) => {           
+    const groupcodestring = atob(newValue.encoded!);
+    const groupcodevalue: IGroupcode = JSON.parse(groupcodestring);
+    groupcodevalue.encoded = newValue.encoded;
     groupcode.next(groupcodevalue);
     console.log(`new groupcode value: ${groupcodevalue}`);
   }
@@ -67,7 +69,7 @@ groupcode.subscribe(next => {
 popupmessaging.messageHandlers.set('getgroupcode', (message, port) => {
   popupmessaging.sendMessage({
     type: 'groupcode',
-    payload: groupcode.value
+    payload: groupcode.value.encoded
   });
 });
 

@@ -10,32 +10,45 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         ? "Hello, " + name + ". This HTTP triggered function executed successfully."
         : "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.";
     
-    if (!req.headers['x-ms-client-principal-name']) {
+    if (!req.headers['x-ms-client-principal']) {
         context.res = {
             status: 401
         }
         return;
     }
 
-    const clientprincipalnameString = Buffer.from(req.headers['x-ms-client-principal-name'], 'base64').toString();
-    const clientprincipalname = JSON.parse(clientprincipalnameString);
-    clientprincipalname.groupcode = uuidv4();
-    const result = encrypt(JSON.stringify(clientprincipalname));
-    //const result = 3;   
+    try {
 
-    context.res = {
-        // status: 200, /* Defaults to 200 */
-        body: {
-            // responseMessage: responseMessage,
-            // headers: req.headers,
-            clientprincipalname: clientprincipalname,
-            signature: result,
-            encoded: Buffer.from(JSON.stringify({
+        const clientprincipalnameString = Buffer.from(req.headers['x-ms-client-principal'], 'base64').toString();
+        const clientprincipalname = JSON.parse(clientprincipalnameString);
+        clientprincipalname.groupcode = uuidv4();
+        const result = encrypt(JSON.stringify(clientprincipalname));
+        //const result = 3;   
+
+        context.res = {
+            // status: 200, /* Defaults to 200 */
+            body: {
+                // responseMessage: responseMessage,
+                // headers: req.headers,
                 clientprincipalname: clientprincipalname,
-                signature: result
-            })).toString('base64')            
+                signature: result,
+                encoded: Buffer.from(JSON.stringify({
+                    clientprincipalname: clientprincipalname,
+                    signature: result
+                })).toString('base64')            
+            }
+        };
+
+    }
+    catch(e) {
+        context.log('exception: ', e);
+        context.res = {
+            status: 500,
+            body: {
+                message: e.message
+            }
         }
-    };
+    }
 
 };
 

@@ -1,16 +1,18 @@
 import { sendMessage } from '../Messaging/ChromeMessaging';
-import { eventHandlers, dispatchEventToPage } from '../Messaging/DocumentEventing';
+import { eventHandlers, dispatchEventToPage, eventDispatchTargetId } from '../Messaging/DocumentEventing';
+import { IMessageType } from '../Shared/MessageModels';
 
 eventHandlers.set('groupcode', setGroupcodeHandler);
 
-async function setGroupcodeHandler(...args: any) {
+async function setGroupcodeHandler(message: IMessageType) {
   const result = await sendMessage({ 
       type: 'groupcode',
-      payload: args[0].payload
+      payload: message.payload
   });
+
   dispatchEventToPage({
     type: 'groupcode',
-    payload: args[0].payload
+    payload: message.payload
   });
 }
 
