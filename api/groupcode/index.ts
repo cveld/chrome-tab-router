@@ -10,6 +10,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         ? "Hello, " + name + ". This HTTP triggered function executed successfully."
         : "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.";
     
+    context.res = {
+        headers: req.headers
+    }
+    return;
+
     if (!req.headers['x-ms-client-principal-name']) {
         context.res = {
             status: 401

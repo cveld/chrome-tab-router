@@ -4,7 +4,7 @@
   "description": "chrome-extension-typescript-starter",
   "main": "index.js",
   "scripts": {
-    "watch": "webpack --config webpack/webpack.dev.js --watch --define __APIBASEURL__='\"http://localhost:4200\"' --define __CONFIGURL__='\"http://localhost:4200\"'",
+    "build:watch": "webpack --config webpack/webpack.dev.js --watch --define __APIBASEURL__='\"http://localhost:4200\"' --define __CONFIGURL__='\"http://localhost:4200\"'",
     "build": "webpack --config webpack/webpack.prod.js --define __APIBASEURL__='\"https://salmon-flower-0b5657e03.azurestaticapps.net\"' --define __CONFIGURL__='\"https://salmon-flower-0b5657e03.azurestaticapps.net\"'",
     "clean": "rimraf dist",
     "test": "npx jest",
