@@ -19,7 +19,7 @@
 <div class="row">
     <div class="md-4">
         <span class="d-inline-block text-truncate" style="max-width: 150px;" *ngIf="!!(groupcode | async); else nogroupcode">
-            {{ groupcode | async }}
+            {{ (groupcode | async)!.encoded }}
         </span>  
         <ng-template #nogroupcode>
             <i>No groupcode assigned yet</i>
@@ -36,7 +36,7 @@
     <div class="md-12">
         <h2>Generate</h2>
         <p><button class="btn btn-primary" (click)="generateClicked()">Generate</button></p>
-
+        <p *ngIf="groupcodeError" class="errormessage">{{groupcodeError}}</p>
         <h2>Reuse existing code</h2>
         <p>    
             <textarea [(ngModel)]='enteredGroupcode' rows="5" cols="40">                             

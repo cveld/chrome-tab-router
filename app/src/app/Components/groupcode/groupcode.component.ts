@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { GroupcodeHandler } from "../../Services/GroupcodeHandler";
+import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 
 @Component({
   selector: 'app-groupcode',
@@ -15,14 +17,25 @@ export class GroupcodeComponent implements OnInit {
   }
 
   groupcode = this.groupcodeHandler.groupcode;
+  groupcodeError = "";
 
-  generateClicked() {
-    this.groupcodeHandler.getGroupcode();
+  async generateClicked() {
+    this.groupcodeError = "";
+    try {
+      await this.groupcodeHandler.getGroupcode();
+    } catch (e) {      
+      this.groupcodeError = e.message;
+    }
   }
+
   submitClicked() {
-    this.groupcodeHandler.setGroupcode(this.enteredGroupcode!);
+    this.groupcodeHandler.setGroupcode({
+      encoded: this.enteredGroupcode!
+    });
   }
   async copyClicked() {        
-    await navigator.clipboard.writeText(this.groupcode.value);
+    await navigator.clipboard.writeText(
+      this.groupcode.value.encoded!
+    );
   }
 }
