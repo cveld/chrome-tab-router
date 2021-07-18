@@ -12,6 +12,10 @@ export const connectionStatus = new BehaviorSubject<IConnectionStatus>({ status:
 export let connection : BehaviorSubject<signalR.HubConnection | null> = new BehaviorSubject<signalR.HubConnection | null>(null);
 
 function connectionstart(connection: signalR.HubConnection) {
+  if (connection.state === 'Connected') {
+    console.warn('Signalr connection already connected');
+    return
+  }
   connection.start()
   .then(() => {    
     connectionStatus.next({ 
@@ -60,10 +64,13 @@ groupcode.pipe(filter(val => Object.keys(val).length !== 0)).subscribe(newgroupc
   console.log('Connecting...');
   connectionstart(newconnection);
 
-  newconnection.onclose(() => {
-    console.log('disconnected');
-    connectionStatus.next({ status: ConnectionStatusEnum.disconnected, error: 'Disconnected' });
-    runConnect();
+  newconnection.onclose((error) => {
+    console.log('disconnected', error, newconnection);
+    // Only reconnect if this is the latest signalr connection:
+    if (newconnection === connection.value) {
+      connectionStatus.next({ status: ConnectionStatusEnum.disconnected, error: 'Disconnected' });
+      runConnect();
+    }
   });
   connection.next(newconnection);
 });
@@ -102,6 +109,10 @@ let disconnectBackoff = 0;
 
 let timeoutfunc : NodeJS.Timeout | null = null;
 function runConnect() {
+  if (timeoutfunc) {
+    clearTimeout(timeoutfunc!);
+  }
+  timeoutfunc = null;
   const currenttimestamp = Date.now();
   console.log('runConnect', currenttimestamp, disconnectBackoff, disconnectBackoff - currenttimestamp);
   if (disconnectBackoff < currenttimestamp) {  
@@ -113,8 +124,6 @@ function runConnect() {
     }
     disconnectBackoff = currenttimestamp + backoffschedule[Math.min(backoffIndex, backoffschedule.length-1)]*1000;
     connectionstart(connection.value!);
-    clearTimeout(timeoutfunc!);
-    timeoutfunc = null;
   }
   else {
     timeoutfunc = setTimeout(runConnect, disconnectBackoff - currenttimestamp);

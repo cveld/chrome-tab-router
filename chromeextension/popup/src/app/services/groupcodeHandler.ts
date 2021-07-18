@@ -22,7 +22,9 @@ export class GroupcodeHandler {
     setGroupcode(groupcode: string) {
         this.messaging.sendMessage({
             type:'groupcode',
-            payload: groupcode
+            payload: {
+                encoded: groupcode
+            }
         });
     }
 }  
