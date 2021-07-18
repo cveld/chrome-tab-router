@@ -6,8 +6,8 @@
             {{ authMe | json }}
         </p>
         <p *ngIf="authMe?.status === 'error'"><b>There is an error while fetching your auth token. Check your connection.</b></p>
-        <p *ngIf="authMe?.value === null"><b>Please log in</b></p>
-        <p *ngIf="authMe?.status === 'done' && authMe?.value !== null"><b>Logged in</b></p>    
+        <p *ngIf="!(isLoggedIn | async)"><b>Please log in</b></p>
+        <p *ngIf="isLoggedIn | async"><b>Logged in</b></p>    
 
         <span *ngIf="isLoggedIn | async"><a class="btn btn-secondary mr-1" href="/.auth/logout">Log out</a></span>
         <span *ngIf="!(isLoggedIn | async)"><a class="btn btn-primary mr-1" href="/.auth/login/aad">Log in</a></span>

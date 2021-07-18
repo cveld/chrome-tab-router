@@ -3,7 +3,9 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  //apibase: 'https://salmon-flower-0b5657e03-4.westeurope.azurestaticapps.net'
+  apibase: ''
 };
 
 /*

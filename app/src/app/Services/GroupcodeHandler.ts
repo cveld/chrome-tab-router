@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { contentScriptReady, dispatchEventToContentScript, eventHandlers, IEventType } from './Messaging/DocumentEventing';
+import * as environment from '../../environments/environment';
 
 interface IGroupCode {
   clientprincipalname?: object,
@@ -43,13 +44,8 @@ export class GroupcodeHandler {
   } // function
 
   getGroupcode() {
-    return new Promise<void>((resolve, reject) => {
-      this.setGroupcode({ 
-        encoded: 'eyJjbGllbnRwcmluY2lwYWxuYW1lIjp7ImlkZW50aXR5UHJvdmlkZXIiOiJhYWQiLCJ1c2VySWQiOiJmNzc1MDY4MTVkNWI0YTRjOTMzMTAxNjMxOGE2OGNjNiIsInVzZXJEZXRhaWxzIjoiY2FybEBpbnR2ZWxkLm5sIiwidXNlclJvbGVzIjpbImFub255bW91cyIsImF1dGhlbnRpY2F0ZWQiXSwiZ3JvdXBjb2RlIjoiYzAwOWQ1YTctNjIxOS00YzRmLWI3NmUtNmVmOTkyZWM0YTFlIn0sInNpZ25hdHVyZSI6IlUyRnNkR1ZrWDEvd3FSVURnUUxHWTE2TlJZT3VCOHJNYlZNYnhqS20yRW56cm5oV3NKNlpaN0VERHlGdHVqVEM0WEc3cTFjeHhJK2NkREhhNEhaYUdwMENNT1ZxSUh5RjNUdVh5bGpyUE5ndHYvMCtqd0V5V29Za0JIRG1KUm03cGRJWXQyM28zb0JQZXVYR2VJcWFNbGpNbkFCOUd6bEE3K01zTy81OTZaSkpXZ2hGSXd1M0NSdUM2REJlZ1dHbEZDZkliazhtc1F5dDJWZHk0bHlUUVhKdVNQSmtxbWJUNWsvblQ0V0JCaW9aQnRGUWZXU2NoYnBaRVpNNmF2N0dFbE15bmZodzJYNXhPS0NsY3RYK3dJSURWMzhZdlBrSW5ZSU1HNFJJRjdFPSJ9' 
-      });    
-      resolve();
-      return;
-      const result$ = this.httpClient.get("https://salmon-flower-0b5657e03-3.westeurope.azurestaticapps.net/api/groupcode", { withCredentials: true });      
+    return new Promise<void>((resolve, reject) => {      
+      const result$ = this.httpClient.get(environment.environment.apibase + "/api/groupcode", { withCredentials: true });      
       result$.subscribe(result => {
         console.log(result);
         const newGroupcode = result as IGroupCode;       
