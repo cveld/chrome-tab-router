@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { Injectable, NgZone } from "@angular/core";
 import { BehaviorSubject, Observable, ReplaySubject } from "rxjs";
 import { map } from 'rxjs/operators';
+import { environment } from "src/environments/environment";
 
 interface IAzureAuthenticationData {
     status: string,
@@ -26,7 +27,7 @@ export class AzureAuthentication {
     isLoggedIn = this.authMe_BehaviorSubject.pipe(map(authData => authData.value?.clientPrincipal != null));
 
     doCall() {
-        this.httpClient.get('/.auth/me', { withCredentials: true }).subscribe({
+        this.httpClient.get(environment.apibase + '/.auth/me', { withCredentials: true }).subscribe({
             next: value => {
                 console.log(value);
                 this.ngZone.run(() => {

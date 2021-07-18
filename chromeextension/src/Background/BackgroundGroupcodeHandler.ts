@@ -23,7 +23,7 @@ chrome.storage.local.get('groupcode', value => {
     
   const groupcodestring = atob(value.groupcode.encoded);
   const groupcodevalue = JSON.parse(groupcodestring);
-  groupcodevalue.encoded = value.groupcode;
+  groupcodevalue.encoded = value.groupcode.encoded;
   groupcode.next(groupcodevalue);
 });
 import { listeners } from './chromestorage';

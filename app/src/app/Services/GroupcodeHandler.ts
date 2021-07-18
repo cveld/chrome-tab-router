@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { contentScriptReady, dispatchEventToContentScript, eventHandlers, IEventType } from './Messaging/DocumentEventing';
+import * as environment from '../../environments/environment';
 
 interface IGroupCode {
   clientprincipalname?: object,
@@ -44,7 +45,7 @@ export class GroupcodeHandler {
 
   getGroupcode() {
     return new Promise<void>((resolve, reject) => {      
-      const result$ = this.httpClient.get("/api/groupcode", { withCredentials: true });      
+      const result$ = this.httpClient.get(environment.environment.apibase + "/api/groupcode", { withCredentials: true });      
       result$.subscribe(result => {
         console.log(result);
         const newGroupcode = result as IGroupCode;       

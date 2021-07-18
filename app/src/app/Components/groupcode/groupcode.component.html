@@ -24,7 +24,7 @@
         <ng-template #nogroupcode>
             <i>No groupcode assigned yet</i>
         </ng-template>
-    </div>
+    </div>    
     <div class="md-4" *ngIf="!!(groupcode | async)">
         <button class="btn btn-secondary mr-1 mb-1" (click)="copyClicked()">
             <i class="bi-files" style="font-size: 1rem;"></i> Copy
