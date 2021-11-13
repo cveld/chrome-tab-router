@@ -6,6 +6,8 @@
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "EncryptionKey": "<encryptionkey>"
   },
-  "CORS": "http://localhost:8080,https://azure-samples.github.io",
-  "CORSCredentials": true
+  "Host": {
+    "CORS": "http://localhost:8080,https://azure-samples.github.io",
+    "CORSCredentials": true
+  }
 }

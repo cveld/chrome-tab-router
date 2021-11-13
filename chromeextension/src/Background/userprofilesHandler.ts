@@ -1,10 +1,7 @@
 console.log('userprofileshandler-start');
 import { BehaviorSubject } from 'rxjs';
-export const userprofiles = new BehaviorSubject<IUserProfileStatus[]>([]);
-
 import { listeners } from './chromestorage';
 import { IUserProfileStatus } from '../Shared/UserprofileModels';
-
 import { sendMessage as sendMessageToContentPage } from '../Messaging/ChromeMessaging';
 import { ConnectionStatusEnum } from '../Shared/signalrModels';
 import { chromeInstanceId } from './BackgroundChromeInstanceIdHandler';
@@ -14,6 +11,9 @@ import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChrome
 import { mergeScan } from 'rxjs/operators';
 import { rules } from './rulesHandler';
 import { IRule } from '../Shared/RuleModels';
+import { mergeUserprofiles } from './userprofileHandlerUtility';
+
+export const userprofiles = new BehaviorSubject<IUserProfileStatus[]>([]);
 
 addHandler('connected', message => {    
     addOrUpdate({
@@ -50,7 +50,8 @@ function addOrUpdate(userProfileStatus: IUserProfileStatus) {
     } else {
         const merged = newarr[index];
         merged.connectionId = userProfileStatus.connectionId;
-        merged.lastSeen = userProfileStatus.lastSeen;        
+        merged.lastSeen = userProfileStatus.lastSeen;    
+        merged.deleted = false;    
     }
     chrome.storage.local.set({ 'userprofiles': newarr });  
 }
@@ -62,6 +63,7 @@ chrome.storage.local.get('userprofiles', value => {
     }
     userprofiles.next(value.userprofiles);
 });
+
 listeners.set('userprofiles', (oldValue, newValue) => {
     userprofiles.next(newValue);
     console.log(`new userprofiles value: ${newValue}`);
@@ -74,6 +76,7 @@ userprofiles.subscribe(next => {
         payload: next
     });
 });
+
 popupmessaging.messageHandlers.set('getuserprofiles', (message, port) => {
     popupmessaging.sendMessage({
         type: 'userprofiles',
@@ -99,38 +102,20 @@ connectionStatus.subscribe(newConnectionStatus => {
     }
 });
 
-
 // Merge incoming signalr message
 addHandler<Array<IUserProfileStatus>>('userprofiles', (message) => {
-    const mergedMap = new Map<string, IUserProfileStatus>();  
-    message.payload?.forEach(u => {
-        mergedMap.set(u.chromeInstanceId!, u); 
-    });
-    let haschanges = false;
-    userprofiles.value.forEach(u => {
-        if (mergedMap.has(u.chromeInstanceId!)) {
-            const found = mergedMap.get(u.chromeInstanceId!)!;            
-            if (u?.updated && (!found.updated || found?.updated < u.updated)) {
-                haschanges = true;
-                found.name = u.name;
-            }
-        }
-        else {
-            haschanges = true;
-            mergedMap.set(u.chromeInstanceId!, u);
-        }        
-    });
+    // consume add, updated, removed userprofiles
+    // ensure current userprofile is not deleted
+    const result = mergeUserprofiles(chromeInstanceId.value, userprofiles.value, message.payload);
 
-    const merged = Array.from(mergedMap, ([_, value]) => value);
-
-    if (haschanges) {
+    if (result.haschanges) {
         sendSignalrMessage({
             type: 'userprofiles',
-            payload: merged
+            payload: result.merged
         });            
     }
     chrome.storage.local.set({
-        'userprofiles': merged
+        'userprofiles': result.merged
     });
 });
 

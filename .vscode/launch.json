@@ -2,6 +2,44 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug Jest Tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/chromeextension/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "cwd": "${workspaceFolder}/chromeextension"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Jest Tests 1",
+      "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
+      "args": [
+          "-i"
+      ],
+      "preLaunchTask": "build",
+      "internalConsoleOptions": "openOnSessionStart",
+      "outFiles": [
+          "${workspaceRoot}/dist/**/*"
+      ],
+      "envFile": "${workspaceRoot}/.env"
+  },
+    {
+      "name": "npm test",
+      "request": "launch",
+      "runtimeArgs": [
+        "test"
+      ],
+      "runtimeExecutable": "npm",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "pwa-node",
+      "cwd": "${workspaceFolder}/chromeextension"
+      
+    },
+    {
       "name": "Attach to Node Functions",
       "type": "node",
       "request": "attach",

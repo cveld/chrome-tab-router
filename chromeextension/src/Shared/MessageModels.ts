@@ -1,4 +1,5 @@
-export interface IMessageType {
+export interface IMessageType<T> {
     type: string;
-    payload?: any;
+    payload?: T;
 }
+

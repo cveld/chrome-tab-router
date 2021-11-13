@@ -17,7 +17,7 @@ export class UserprofilesHandler {
             });
         });
 
-        this.messaging.sendMessage({type:'getuserprofiles'});
+        this.messaging.sendMessage({type: 'getuserprofiles'});
     }
 
     setUserprofiles(userprofiles: IUserProfileStatus[]) {
@@ -37,6 +37,17 @@ export class UserprofilesHandler {
         const userprofiles = this.userprofiles.value;
         userprofiles[index] = userprofile;
         this.setUserprofiles(userprofiles);
+    }
+
+    deleteUserprofile(userprofile: IUserProfileStatus) {
+        const index = this.userprofiles.value.findIndex(u => u.chromeInstanceId === userprofile.chromeInstanceId);
+        if (index === -1) {
+            return;
+        }
+        const newUserprofile = this.userprofiles.value[index];
+        newUserprofile.deleted = true;
+        newUserprofile.updated = Date.now();
+        this.setUserprofiles(this.userprofiles.value);
     }
 }
 

@@ -2,7 +2,7 @@ console.log('chromeprofile');
 import { combineLatest } from "rxjs";
 import { map } from "rxjs/operators";
 import { chromeInstanceId } from "./BackgroundChromeInstanceIdHandler";
-import { userprofiles } from "./UserprofilesHandler";
+import { userprofiles } from "./userprofilesHandler";
 
 export let name: string | undefined;
 combineLatest([chromeInstanceId, userprofiles]).pipe(map(value => {

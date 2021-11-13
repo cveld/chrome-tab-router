@@ -21,7 +21,7 @@
     "chromeextension:scripts:install": "npm run --prefix chromeextension install",
     "func:install": "npm run --prefix api install",
     "app:install": "npm run --prefix app install",    
-    "chromeextension:prod": "npm-run-all --parallel chromeextension:popup:build:prod chromeextension:scripts:build:prod",
+    "chromeextension:prod": "rm -rf chromeextension/distprod && npm-run-all --parallel chromeextension:popup:build:prod chromeextension:scripts:build:prod",
     "zip": ""
   },
   "repository": {

@@ -4,7 +4,7 @@
 
   "name": "Chrome Tab Router",
   "description": "Routes urls to desired user profiles",
-  "version": "0.5",
+  "version": "0.5.2",
   "options_ui": {
     "page": "options.html",
     "chrome_style": true
@@ -27,8 +27,7 @@
     "scripts": ["js/vendor.js", "js/background.js"]
   },
 
-  "permissions": [
-    "gcm",
+  "permissions": [    
     "storage",    
     "tabs",
     "<all_urls>",    

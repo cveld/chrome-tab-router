@@ -16,9 +16,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
   }
   
   const encryptedGroupcode = req.headers.groupcodeauthorization;  
+  
   let clientprincipalnamestring;
-  try {      
-    clientprincipalnamestring = decrypt(encryptedGroupcode);  
+  try {        
+    clientprincipalnamestring = decrypt(context, encryptedGroupcode);  
   }
   catch (ex) {
     context.res = {
@@ -32,20 +33,31 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     };
     return;
   }
-  const clientprincipalname = JSON.parse(clientprincipalnamestring);
 
-  if (clientprincipalname.groupcode !== req.headers['groupcode']) {
+  try {
+    const clientprincipalname = JSON.parse(clientprincipalnamestring);
+
+    if (clientprincipalname.groupcode !== req.headers['groupcode']) {
+      context.res = {
+        status: 400,
+        body: {
+          "ErrorCode": "A1"
+        }
+      };
+      return;
+    }
+
+    connectionInfo.clientprincipalname = clientprincipalname;
+    context.res.json(connectionInfo);
+  } catch (ex) {
+    console.log('ERROR: Cannot parse json. Is the encryption key set correctly?', ex)
     context.res = {
       status: 400,
       body: {
-        "ErrorCode": "A1"
+        "ErrorCode": "A3"
       }
     };
-    return;
   }
-
-  connectionInfo.clientprincipalname = clientprincipalname;
-  context.res.json(connectionInfo);
 };
 
 export default httpTrigger;

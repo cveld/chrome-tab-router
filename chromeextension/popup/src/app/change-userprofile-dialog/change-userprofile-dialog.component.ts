@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { IUserProfileStatus } from '../../../../src/Shared/UserprofileModels';
+import { ChangeUserProfileDialogResultActionEnum, IChangeUserProfileDialogResult } from './IChangeUserProfileDialogResult';
 
 @Component({
   selector: 'app-change-userprofile-dialog',
@@ -16,8 +17,22 @@ export class ChangeUserprofileDialogComponent implements OnInit {
 
   @Input()
   userprofile: IUserProfileStatus = {};
+  
+  @Input()
+  currentUserprofileId: string = '';
 
   changeClicked() {
-    this.modal.close(this.userprofile);
+    const closeResult: IChangeUserProfileDialogResult = {
+      action: ChangeUserProfileDialogResultActionEnum.change,
+      userProfileStatus: this.userprofile
+    }
+    this.modal.close(closeResult);
+  }
+
+  deleteClicked() {
+    const closeResult: IChangeUserProfileDialogResult = {
+      action: ChangeUserProfileDialogResultActionEnum.delete
+    }
+    this.modal.close(closeResult);
   }
 }

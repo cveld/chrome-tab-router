@@ -4,7 +4,7 @@ import { IMessageType } from '../Shared/MessageModels';
 
 eventHandlers.set('groupcode', setGroupcodeHandler);
 
-async function setGroupcodeHandler(message: IMessageType) {
+async function setGroupcodeHandler(message: IMessageType<any>) {
   const result = await sendMessage({ 
       type: 'groupcode',
       payload: message.payload
