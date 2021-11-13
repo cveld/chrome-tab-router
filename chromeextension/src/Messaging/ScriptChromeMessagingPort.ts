@@ -3,8 +3,10 @@ import { IMessageType } from "../Shared/MessageModels";
 
 const ports = new Map<string, ScriptChromeMessagingWithPort>();
 
+type ICallback<T> = (message: IMessageType<T>, port: chrome.runtime.Port) => void;
+type ICallbackAny = (message: IMessageType<any>, port: chrome.runtime.Port) => void;
 export class ScriptChromeMessagingWithPort {
-  messageHandlers = new Map<string, (message: IMessageType, port: chrome.runtime.Port) => void>();
+  messageHandlers = new Map<string, ICallbackAny>();
   port: chrome.runtime.Port;
   static getInstance(name: string): ScriptChromeMessagingWithPort {
     if (ports.has(name)) {
@@ -27,7 +29,11 @@ export class ScriptChromeMessagingWithPort {
     });
   }
 
-  sendMessage(message: IMessageType): void {
+  setHandler<T>(action: string, callback: ICallback<T>) {
+    this.messageHandlers.set(action, callback);
+  }
+  
+  sendMessage<T>(message: IMessageType<T>): void {
     let resolveFunc: (value: any) => void;
     let rejectFunc;
     const promise = new Promise<any>((resolve, reject) => {

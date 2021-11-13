@@ -9,9 +9,9 @@ export class GroupcodeHandler {
     private messaging: ScriptChromeMessagingWithPort;
     constructor(private ngZone: NgZone) {
         this.messaging = ScriptChromeMessagingWithPort.getInstance('popup');
-        this.messaging.messageHandlers.set('groupcode', (message, port) => {
+        this.messaging.setHandler<{encoded: string}>('groupcode', (message, port) => {
             ngZone.run(() => {
-                this.groupcode.next(message.payload.encoded);
+                this.groupcode.next(message.payload!.encoded);
             });
         });
         this.messaging.sendMessage({
@@ -21,7 +21,7 @@ export class GroupcodeHandler {
     groupcode : BehaviorSubject<string>  = new BehaviorSubject<string>('');   
     setGroupcode(groupcode: string) {
         this.messaging.sendMessage({
-            type:'groupcode',
+            type: 'groupcode',
             payload: {
                 encoded: groupcode
             }

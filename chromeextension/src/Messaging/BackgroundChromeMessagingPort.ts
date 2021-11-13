@@ -1,7 +1,10 @@
 import { IMessageType } from "../Shared/MessageModels";
 
+type ICallback<T> = (message: IMessageType<T>, port: chrome.runtime.Port) => void;
+type ICallbackAny = (message: IMessageType<any>, port: chrome.runtime.Port) => void;
+
 export class BackgroundChromeMessagingWithPort {
-  messageHandlers = new Map<string, (message: IMessageType, port: chrome.runtime.Port) => void>();
+  messageHandlers = new Map<string, ICallbackAny>();
   ports = new Set<chrome.runtime.Port>();
 
   static getInstance(name: string): BackgroundChromeMessagingWithPort {    
@@ -32,7 +35,7 @@ export class BackgroundChromeMessagingWithPort {
   }
   
   // TODO: we should implement a narrow port specific request response pattern. for now the response gets broadcasted to all open ports
-  sendMessage(message: IMessageType): void {
+  sendMessage(message: IMessageType<any>): void {
     console.log('sendmessage', this.ports);
     this.ports.forEach(port => port.postMessage(message));    
   }

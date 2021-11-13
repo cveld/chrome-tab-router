@@ -17,13 +17,15 @@
     <div class="form-group">
       <label for="userprofile">Chrome userprofile target</label>
       <select class="form-control" id="userprofile" name="userprofile" [(ngModel)]='rule.targetUserprofile'>
-        <option *ngFor="let userprofile of userprofiles$|async" [attr.value]="userprofile.chromeInstanceId">
-          <span *ngIf="userprofile.name; else noname">{{userprofile.name}}</span>
-          <ng-template #noname>
-            {{userprofile.chromeInstanceId}}
-          </ng-template>
-          <span *ngIf="(chromeinstanceid$|async) === userprofile.chromeInstanceId">&nbsp;(current)</span>
-        </option>
+        <ng-container *ngFor="let userprofile of userprofiles$|async">
+          <option *ngIf="!userprofile.deleted" [attr.value]="userprofile.chromeInstanceId">
+            <span *ngIf="userprofile.name; else noname">{{userprofile.name}}</span>
+            <ng-template #noname>
+              {{userprofile.chromeInstanceId}}
+            </ng-template>
+            <span *ngIf="(chromeinstanceid$|async) === userprofile.chromeInstanceId">&nbsp;(current)</span>
+          </option>
+        </ng-container>
       </select>
     </div>
     <button class="btn btn-primary" (click)="addClicked()">

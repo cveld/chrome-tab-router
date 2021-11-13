@@ -1,6 +1,6 @@
 import './BackgroundChromeInstanceIdHandler';
 import './BackgroundGroupcodeHandler';
-import './UserprofilesHandler';
+import './userprofilesHandler';
 import './rulesHandler';
 import './tabUpdateHandler';
 import './badgeStatusHandler';

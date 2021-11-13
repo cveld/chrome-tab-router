@@ -8,13 +8,15 @@
             <th>Updated</th>
         </thead>
         <tbody>
-            <tr *ngFor="let userprofile of userprofiles|async" (click)="rowClicked(userprofile)" style="cursor: pointer">
-                <td>{{userprofile.name}}<ng-container *ngIf="(chromeinstanceid$ | async) === userprofile.chromeInstanceId"> (current)</ng-container></td>
-                <td>{{userprofile.chromeInstanceId}}</td>
-                <td>{{userprofile.connectionId}}</td>
-                <td>{{userprofile.lastSeen | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
-                <td>{{userprofile.updated| date: 'yyyy-MM-dd HH:mm:ss'}}</td>
-            </tr>
+            <ng-container *ngFor="let userprofile of userprofiles|async">
+                <tr *ngIf="!userprofile.deleted" (click)="rowClicked(userprofile)" style="cursor: pointer">
+                    <td>{{userprofile.name}}<ng-container *ngIf="(chromeinstanceid$ | async) === userprofile.chromeInstanceId"> (current)</ng-container></td>
+                    <td>{{userprofile.chromeInstanceId}}</td>
+                    <td>{{userprofile.connectionId}}</td>
+                    <td>{{userprofile.lastSeen | date: 'yyyy-MM-dd HH:mm:ss'}}</td>
+                    <td>{{userprofile.updated| date: 'yyyy-MM-dd HH:mm:ss'}}</td>
+                </tr>
+            </ng-container>
         </tbody>
 </table>
 

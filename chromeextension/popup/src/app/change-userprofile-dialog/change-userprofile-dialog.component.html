@@ -15,6 +15,7 @@
         <label for="name">Chrome userprofile name</label>
         <input [(ngModel)]='userprofile.name' type="text" class="form-control" id="userprofile" name="name" placeholder="Enter Chrome userprofile name">
     </div>
-    <button class="btn btn-primary" (click)="changeClicked()">Change</button>
+    <button class="btn btn-primary" (click)="changeClicked()">Change</button>   
+    <button *ngIf="currentUserprofileId !== userprofile.chromeInstanceId" class="btn btn-secondary float-right" (click)="deleteClicked()">Delete</button>
 </form>
 </div>

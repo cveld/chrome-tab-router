@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { signalrHandler } from '../services/signalrhandler';
+import { signalrHandler } from '../services/signalrHandler';
 
 @Component({
   selector: 'app-connection',

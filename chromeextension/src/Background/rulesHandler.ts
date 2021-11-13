@@ -3,6 +3,7 @@ import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChrome
 import { listeners } from "./chromestorage";
 import { sendSignalrMessage, addHandler, ISignalrMessage } from './signalrmessages';
 import {v4 as uuidv4} from 'uuid';
+import { mergeRules } from "./rulesHandlerUtility";
 
 export let rules = new Array<IRule>();
 export function checkUrl(url: string): string | undefined {
@@ -52,46 +53,18 @@ listeners.set('rules', (oldValue, newValue) => {
 
 // merge incoming signalr message
 addHandler<Array<IRule>>('rules', (message) => {
-  const mergedMap = new Map<string, IRule>();  
-    message.payload?.forEach(u => {
-      if (!u.id) {
-        u.id = uuidv4();
-      }
-        mergedMap.set(u.id, u); 
-    });
-    let haschanges = false;
-    rules.forEach(u => {
-      if (!u.id) {
-        u.id = uuidv4();
-      }
-      if (mergedMap.has(u.id)) {
-        const found = mergedMap.get(u.id)!;            
-        if (u?.updated && (!found.updated || found?.updated < u.updated)) {
-            haschanges = true;
-            found.regex = u.regex;
-            found.targetUserprofile = u.targetUserprofile;
-            found.deleted = u.deleted;
-        }
-      }
-      else {
-          haschanges = true;
-          mergedMap.set(u.id, u);
-      }        
-    });
-
-    const merged = Array.from(mergedMap, ([_, value]) => value);
-
-    if (haschanges) {
-        sendSignalrMessage({
-            type: 'rules',
-            payload: merged
-        });            
-    }
-    chrome.storage.local.set({
-        'rules': merged
-    });
-    popupmessaging.sendMessage({
-      type: 'rules',
-      payload: merged
+  const result = mergeRules(rules, message.payload);
+  if (result.haschanges) {
+      sendSignalrMessage({
+          type: 'rules',
+          payload: result.merged
+      });            
+  }
+  chrome.storage.local.set({
+      'rules': result.merged
+  });
+  popupmessaging.sendMessage({
+    type: 'rules',
+    payload: result.merged
   });
 });

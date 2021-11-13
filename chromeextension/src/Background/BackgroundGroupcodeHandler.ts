@@ -1,5 +1,5 @@
 import { BehaviorSubject, ReplaySubject } from 'rxjs';
-import { messageHandlers, sendMessage } from '../Messaging/ChromeMessaging';
+import { messageHandlers, sendMessage, setHandler } from '../Messaging/ChromeMessaging';
 import { IMessageType } from '../Shared/MessageModels';
 import { configUrl } from './settings';
 import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';
@@ -37,7 +37,7 @@ listeners.set('groupcode', (oldValue: IGroupcode|null, newValue: IGroupcode) => 
   }
 );
 
-function setGroupcodeHandler(request: IMessageType, sender: chrome.runtime.MessageSender, sendResponse: any) {    
+function setGroupcodeHandler(request: IMessageType<any>, sender: chrome.runtime.MessageSender, sendResponse: any) {    
   console.log(request.payload);
   // const decoded = Buffer.from(request.payload, 'base64').toString();
   // const newgroupcode = JSON.parse(decoded) as IGroupcode;
@@ -47,7 +47,7 @@ function setGroupcodeHandler(request: IMessageType, sender: chrome.runtime.Messa
   sendResponse();  
 }
 
-messageHandlers.set('groupcode', setGroupcodeHandler);
+setHandler('groupcode', setGroupcodeHandler);
 
 function launchConfig() {  
   //chrome.tabs.create({ url: configUrl });
@@ -69,7 +69,7 @@ groupcode.subscribe(next => {
 popupmessaging.messageHandlers.set('getgroupcode', (message, port) => {
   popupmessaging.sendMessage({
     type: 'groupcode',
-    payload: groupcode.value.encoded
+    payload: { encoded: groupcode.value.encoded }
   });
 });
 
