@@ -5,14 +5,14 @@ You can install it through https://chrome.google.com/webstore/detail/chrome-tab-
 # Architecture
 The solution comprises two parts:
 * Azure static web app with two parts:
-- Angular front-end: app
-- Functions back-end: api
+  - Angular front-end: app
+  - Functions back-end: api
 * Chrome extension, with two parts:
-- Scripts: background and content script: chromeextension
-- Angular extension page: chromeextension/popup
+  - Scripts: background and content script: chromeextension
+  - Angular extension page: chromeextension/popup
 * Azure SignalR Service
-- Connected with the background script in order to communicate messages across Chrome user profiles
-- Utilizes Azure Active Directory authentication to ensure fair use
+  - Connected with the background script in order to communicate messages across Chrome user profiles
+  - Utilizes Azure Active Directory authentication to ensure fair use
 
 # Implementation
 Execute the following steps to run the solution locally:
