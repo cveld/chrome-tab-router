@@ -10,6 +10,10 @@ The solution comprises two parts:
 * Chrome extension, with two parts:
 - Scripts: background and content script: chromeextension
 - Angular extension page: chromeextension/popup
+* Azure SignalR Service
+- Connected with the background script in order to communicate messages across Chrome user profiles
+- Utilizes Azure Active Directory authentication to ensure fair use
+
 # Implementation
 Execute the following steps to run the solution locally:
 * install func global tool
