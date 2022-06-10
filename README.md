@@ -1,5 +1,6 @@
-# chrome-tab-router
-Routes incoming links to preferred Chrome user profiles
+# Chrome Tab Router
+A Chrome extension that routes incoming links to preferred Chrome user profiles.
+You can install it through https://chrome.google.com/webstore/detail/chrome-tab-router/mdagoleaelpaicldokjcpelifdgmiglg
 
 # Architecture
 The solution comprises two parts:
