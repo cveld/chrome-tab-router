@@ -14,6 +14,9 @@ module.exports = {
         libraryTarget: 'commonjs',
         path: path.join(__dirname, "../dist/js"),
         filename: "[name].js",
+        // webpack's default (md4) is unavailable on Node 17+. Use a digest
+        // that ships with Node's crypto so no legacy OpenSSL flag is needed.
+        hashFunction: "sha256",
     },
     optimization: {
         // splitChunks: {
