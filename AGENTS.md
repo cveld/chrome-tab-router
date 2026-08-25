@@ -28,7 +28,7 @@ functionality now lives in the React options page.
 
 Root (orchestrates all three projects via `npm-run-all`):
 - `npm run install:all` — install dependencies for all three projects.
-- `npm run watch:all` — run the Functions host, the extension dev build (`wxt`), and the Angular
+- `npm run watch:all` — run the Functions host, the extension dev build (`wxt`), and the Vite
   `app` in parallel.
 - `npm run chromeextension:prod` — production zip of the extension (WXT build + zip).
 
@@ -161,7 +161,7 @@ pipeline — it is built/published to the Chrome Web Store manually (`npm run zi
 ## Local end-to-end test against a locally running Function App
 
 The extension talks straight to the Functions host over SignalR (`{apiBaseUrl}/api`),
-so no Angular app or Static Web App EasyAuth is needed to exercise the backend:
+so no web app or Static Web App EasyAuth is needed to exercise the backend:
 
 1. `cd api`: copy `local.settings.sample.json` to `local.settings.json` and fill in
    `AzureSignalRConnectionString` + `EncryptionKey` (the deployed values live in the

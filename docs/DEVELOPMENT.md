@@ -59,7 +59,7 @@ Before you start, make sure you have:
    - `CORSCredentials = true`
 
    This looks like leftover starter-template configuration and may need updating for local
-   browser testing, since the Angular app runs on `http://localhost:4200`.
+   browser testing, since the web app runs on `http://localhost:4200`.
 
 ## Running everything at once
 
