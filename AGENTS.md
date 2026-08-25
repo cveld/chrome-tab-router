@@ -13,7 +13,7 @@ The repo is a monorepo of three independent npm projects, orchestrated from the 
 - `app/` — Vite + React single-page app for an Azure Static Web App. Handles login (via Static
   Web Apps' built-in `/.auth/me`) and issuing/displaying the shared group code, and hands the
   group code to the extension through a window-event bridge.
-- `api/` — Azure Functions (Node/TypeScript, webpack-bundled) backing the static web app:
+- `api/` — Azure Functions (TypeScript, v4 programming model, Node 20+) backing the static web app:
   SignalR negotiate + message relay, group code issuance, AES encryption of the auth payload.
 - `chromeextension/` — the extension itself: Manifest V3, built with WXT (Vite-based). React
   19 background/content/options entrypoints under `entrypoints/`; shared logic under `src/`.
@@ -35,9 +35,9 @@ Root (orchestrates all three projects via `npm-run-all`):
 `api/` (requires the Azure Functions Core Tools `func` on PATH; copy
 `local.settings.sample.json` to `local.settings.json` and fill in `AzureSignalRConnectionString`
 and `EncryptionKey` first):
-- `npm run build` — webpack prod build.
-- `npm run watch` — webpack dev build with `--watch`.
-- `npm start` — `func start` (runs the built functions).
+- `npm run build` — tsc compile to `dist/`.
+- `npm run watch` — `tsc --watch`; a running host picks up changes via `watchDirectories`.
+- `npm start` — rebuild + `func start` on http://localhost:7071.
 - `npm test` — no-op; there are no real tests for `api/`.
 
 `app/` (Vite + React):
@@ -128,19 +128,23 @@ Modals are hand-rolled (`components/Modal.tsx`). Styling is dependency-free CSS 
 
 ### `api/`
 
-Each function is a standalone script bundled by webpack (`api/webpack/`) to `dist/js/<name>.js`,
-referenced from that function's `function.json`:
+Azure Functions v4 programming model: every function registers itself via
+`app.http(...)` in `src/functions/<name>.ts`, compiled by plain `tsc` to
+`dist/functions/*.js` (matched by the `main` glob in package.json). No webpack,
+no `function.json`; bindings are declared in code:
 
 - `groupcode` — reads the Static Web Apps `x-ms-client-principal` header, stamps a fresh
   groupcode (uuid) onto it, signs it via `encrypt()`, returns
   `{ clientprincipalname, signature, encoded }`. Responds 401 if the header is absent.
-- `negotiate` — validates the `groupcode` / `groupcodeauthorization` headers and returns the
-  injected `signalRConnectionInfo` binding. Must stay enabled (it was disabled 2021-2026 and
-  broke everything).
+- `negotiate` — signalRConnectionInfo input binding (hub `chat`, userId from the
+  `groupcode` header) plus validation of `groupcode` / `groupcodeauthorization`
+  (error codes A0/A1/A2/A3). Must stay enabled (it was disabled 2021-2026 and
+  broke everything). Like in v1, requests without those headers fail inside the
+  binding resolution itself with a bare 500.
 - `messages` — decrypts `groupcodeauthorization` and returns a SignalR output-binding message
   (`userId`, `target`, `arguments`), which is how one client's rules/userprofiles/`openurl`
   messages get relayed to the rest of the group.
-- `Utility/encryption.ts` — AES (`crypto-js`) encrypt/decrypt using `process.env.EncryptionKey`;
+- `src/utility/encryption.ts` — AES (`crypto-js`) encrypt/decrypt using `process.env.EncryptionKey`;
   both directions throw synchronously if the key is unset.
 
 ### `app/`

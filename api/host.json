@@ -14,7 +14,7 @@
   },
 
   "watchDirectories": [
-    "dist/js"
+    "dist"
   ]
 }
 

@@ -105,13 +105,13 @@ Setup:
 
 Commands:
 
-- Build (webpack production build):
+- Build (tsc compile to `dist/`):
 
   ```bash
   npm run build
   ```
 
-- Watch (webpack dev watch mode):
+- Watch (`tsc --watch`; a running host reloads via `watchDirectories`):
 
   ```bash
   npm run watch

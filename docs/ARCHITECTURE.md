@@ -44,7 +44,7 @@ Azure Functions backend for the static web app.
 Characteristics:
 
 - Node/TypeScript
-- webpack-bundled
+- Azure Functions v4 programming model (`app.http` registrations, plain tsc build, no bundler)
 
 Responsibilities:
 
@@ -57,7 +57,7 @@ Key endpoints:
 - `api/groupcode`
   - Builds a group code from the Azure Static Web Apps client principal (`x-ms-client-principal`)
   - Stamps it with a fresh UUID
-  - Encrypts/signs it using `api/Utility/encryption.ts` and `process.env.EncryptionKey`
+  - Encrypts/signs it using `api/src/utility/encryption.ts` and `process.env.EncryptionKey`
 - `api/negotiate`
   - Validates `groupcode` / `groupcodeauthorization`
   - Decrypts the authorization payload

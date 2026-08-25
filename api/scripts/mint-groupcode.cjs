@@ -17,7 +17,7 @@ const key = settings.Values.EncryptionKey;
 const clientprincipalname = {
   userId: 'local-dev',
   userRoles: ['anonymous', 'authenticated'],
-  groupcode: uuidv4()
+  groupcode: randomUUID()
 };
 const signature = CryptoJS.AES.encrypt(JSON.stringify(clientprincipalname), key).toString();
 const encoded = Buffer.from(JSON.stringify({

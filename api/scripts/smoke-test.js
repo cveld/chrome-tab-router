@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const CryptoJS = require('crypto-js');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('node:crypto');
 
 const settings = JSON.parse(
   fs.readFileSync(path.join(__dirname, '..', 'local.settings.json'), 'utf8'));
@@ -13,7 +13,7 @@ const key = settings.Values.EncryptionKey;
 const clientprincipalname = {
   userId: 'local-dev',
   userRoles: ['anonymous', 'authenticated'],
-  groupcode: process.argv[2] || uuidv4()
+  groupcode: process.argv[2] || randomUUID()
 };
 const signature = CryptoJS.AES.encrypt(JSON.stringify(clientprincipalname), key).toString();
 
