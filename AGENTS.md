@@ -75,7 +75,7 @@ extension via `chrome://extensions` (Developer mode).
    `removetab` back so the source profile closes the original tab. All of this is coordinated in
    `chromeextension/src/Background/tabUpdateHandler.ts`, which also keeps a status log
    (`ITabStatus[]`) shown in the Log tab.
-4. Group codes are minted server-side (`api/groupcode`) from the Static Web Apps client
+4. Group codes are minted server-side (`api/src/functions/groupcode`) from the Static Web Apps client
    principal, AES-encrypted (`api/Utility/encryption.ts`), and used both as the SignalR `userId`
    and as a shared secret so only extension instances in the same group can talk to each other.
    `api/negotiate` decrypts the `groupcodeauthorization` header and cross-checks it against the
@@ -169,11 +169,11 @@ so no web app or Static Web App EasyAuth is needed to exercise the backend:
 
 1. `cd api`: copy `local.settings.sample.json` to `local.settings.json` and fill in
    `AzureSignalRConnectionString` + `EncryptionKey` (the deployed values live in the
-   Static Web App's app settings). Then run `scripts\start-func-node18.cmd`, which pins
+   Static Web App's app settings). Then run `scripts\start-func-node20.cmd`, which pins
    a portable Node onto PATH (the Functions Node worker rejects the machine default
    Node 24) and runs `func start` on http://localhost:7071.
 2. `node scripts/mint-groupcode.cjs` mints a test group code blob (same AES scheme as
-   `api/groupcode`). Paste the printed one-liner into the extension service-worker
+   `api/src/functions/groupcode`). Paste the printed one-liner into the extension service-worker
    console; setting `chrome.storage.local` triggers an immediate SignalR reconnect.
 3. `cd chromeextension && npm run build:localfunc` builds `.output/chrome-mv3-localfunc`
    with `WXT_API_BASE_URL=http://localhost:7071` (from `.env.localfunc`; `dev:localfunc`

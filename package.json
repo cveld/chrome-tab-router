@@ -18,8 +18,7 @@
     "install:all": "npm-run-all chromeextension:scripts:install func:install app:install",
     "chromeextension:scripts:install": "npm run --prefix chromeextension install",
     "func:install": "npm run --prefix api install",
-    "app:install": "npm run --prefix app install",
-    "zip": ""
+    "app:install": "npm run --prefix app install"
   },
   "repository": {
     "type": "git",
