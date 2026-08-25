@@ -10,4 +10,3 @@ export interface IConnectionStatus {
     error?: string,
     connectionId?: string | null
 };
-  

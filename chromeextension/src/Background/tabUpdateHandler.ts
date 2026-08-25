@@ -2,39 +2,23 @@ import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChrome
 import { chromeInstanceId } from './BackgroundChromeInstanceIdHandler';
 import { checkUrl } from './rulesHandler';
 import { addHandler, sendSignalrMessage } from './signalrmessages';
-import { ITabStatus, TabStatusEnum } from '../Shared/TabStatusModels';
+import { TabStatusEnum } from '../Shared/TabStatusModels';
+import type { ITabStatus } from '../Shared/TabStatusModels';
 
 // List that captures the handling state of a created tab
 const tabs = new Set<number>();
-const navigatedTabs = new Map<number, chrome.webNavigation.WebNavigationParentedCallbackDetails>();
+const navigatedTabs = new Map<number, chrome.webNavigation.WebNavigationBaseCallbackDetails>();
 
-let log: Array<ITabStatus>;
+let log: Array<ITabStatus> = [];
 
-const popupmessaging = BackgroundChromeMessagingWithPort.getInstance('popup');
-chrome.tabs.onCreated.addListener(async (tab) => {  
-  const targetUrl = tab.pendingUrl || tab.url;
-  
-  // if targetUrl is not set, use other APIs to fetch the url:
-  if (!targetUrl) {    
-    //console.log('target url cannot be fetched from tab: ', tab);    
-    tabs.add(tab.id!);
-  }
-  else {
-    // Check whether user clicked new tab operation:
-    if (targetUrl !== 'chrome://newtab/' && !targetUrl.startsWith('chrome-extension://')) {
-      // If not, we will validate the incoming url and route if required:
-      const match = checkUrl(targetUrl);
-      const self = match === chromeInstanceId.value;
-      processTargetUrl(tab.id!, targetUrl, match);
-    }
-  }
-  popupmessaging.sendMessage({
-    type: 'tabcreated',
-    payload: tab
-  });  
-});
+// getInstance() is memoized (see BackgroundChromeMessagingPort.ts), so
+// calling it here just fetches the singleton created by registerTabUpdateHandler()
+// below — it does not re-attach the onConnect listener.
+function popupmessaging() {
+  return BackgroundChromeMessagingWithPort.getInstance('popup');
+}
 
-function processTargetUrl(tabId: number, targetUrl: string, match: string | undefined) {
+function processTargetUrl(tabId: number, targetUrl: string, match: string | undefined, self: boolean) {
   addLogline({
     tabId: tabId,
     status: match ? (self ? TabStatusEnum.Self : TabStatusEnum.Routing) : TabStatusEnum.Unmatched,
@@ -52,90 +36,19 @@ function processTargetUrl(tabId: number, targetUrl: string, match: string | unde
       }
     });
   }
-
 }
-
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {  
-  if (changeInfo.status === 'unloaded') {
-    return;
-  }
-  if (changeInfo.url === 'chrome://newtab/') {
-    if (tabs.has(tabId)) {
-      tabs.delete(tabId);
-    }
-  }
-  else {
-    if (tabs.has(tabId)) {
-      console.log('tabUpdated:', tabId, changeInfo, tab);
-      tabs.delete(tabId);
-      const targetUrl = navigatedTabs.get(tabId)?.url!;
-      const match = checkUrl(targetUrl);
-      const self = match === chromeInstanceId.value;
-      if (!self && !changeInfo.url?.startsWith('chrome-extension://')) {
-        processTargetUrl(tabId, targetUrl, match)
-      }
-    }
-  }
-  // popupmessaging.sendMessage({
-  //   type: 'tabupdated',
-  //   payload: {
-  //     tabId: tabId,
-  //     changeInfo: changeInfo,
-  //     tab: tab
-  //   }
-  // })
-}); // chrome tabs onUpdated
-
-addHandler<any>('openurl', (message) => {
-  if (message.payload.targetUserprofile === chromeInstanceId.value) {
-    addLogline({
-      tabId: message.payload.originaltab,
-      status: TabStatusEnum.Created,
-      url: message.payload.url,
-      targetUserprofile: chromeInstanceId.value
-  });
-  chrome.tabs.create({url: message.payload.url});
-  sendSignalrMessage({
-    type: 'removetab',
-    payload: {
-      targetUserprofile: message.payload.originalUserprofile,
-      tab: message.payload.originaltab
-    }
-  });
-}
-});
-
-addHandler<{ targetUserprofile: string, tab: number }>('removetab', (message) => {
-  if (message.payload!.targetUserprofile === chromeInstanceId.value) {
-    updateLoglineToRemovedState(message.payload!.tab);
-    chrome.tabs.remove(message.payload!.tab);
-  }
-});
-
-popupmessaging.messageHandlers.set('getlog', (message, port) => {
-  popupmessaging.sendMessage({ 
-    type: 'log', 
-    payload: log
-  });
-});
-
-chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
-  if (tabs.has(tabId)) {
-    tabs.delete(tabId);
-  }
-});
 
 function updateLoglineToRemovedState(tabId: number) {
   const idx = log.findIndex(v => v.tabId === tabId && v.status === TabStatusEnum.Routing);
   if (idx === -1) {
     return;
   }
-  log[idx].status = TabStatusEnum.Removed;
+  log[idx]!.status = TabStatusEnum.Removed;
   chrome.storage.local.set({
     'log': log
   });
-  popupmessaging.sendMessage({ 
-    type: 'log', 
+  popupmessaging().sendMessage({
+    type: 'log',
     payload: log
   });
 }
@@ -145,21 +58,105 @@ function addLogline(logline: ITabStatus) {
   chrome.storage.local.set({
     'log': log
   });
-  popupmessaging.sendMessage({ 
-    type: 'log', 
+  popupmessaging().sendMessage({
+    type: 'log',
     payload: log
   });
 }
 
-chrome.storage.local.get('log', value => {
-  if (!value.log) {
-    log = new Array<ITabStatus>();
-  }
-  else {
-    log = value.log;
-  }
-});
+export function registerTabUpdateHandler() {
+  const popupmessagingInstance = popupmessaging();
 
-chrome.webNavigation.onBeforeNavigate.addListener((details) => {  
-  navigatedTabs.set(details.tabId, details);
-})
+  chrome.tabs.onCreated.addListener(async (tab) => {
+    const targetUrl = tab.pendingUrl || tab.url;
+
+    // if targetUrl is not set, use other APIs to fetch the url:
+    if (!targetUrl) {
+      tabs.add(tab.id!);
+    }
+    else {
+      // Check whether user clicked new tab operation:
+      if (targetUrl !== 'chrome://newtab/' && !targetUrl.startsWith('chrome-extension://')) {
+        // If not, we will validate the incoming url and route if required:
+        const match = checkUrl(targetUrl);
+        const self = match === chromeInstanceId.value;
+        processTargetUrl(tab.id!, targetUrl, match, self);
+      }
+    }
+    popupmessagingInstance.sendMessage({
+      type: 'tabcreated',
+      payload: tab
+    });
+  });
+
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.status === 'unloaded') {
+      return;
+    }
+    if (changeInfo.url === 'chrome://newtab/') {
+      if (tabs.has(tabId)) {
+        tabs.delete(tabId);
+      }
+    }
+    else {
+      if (tabs.has(tabId)) {
+        tabs.delete(tabId);
+        const targetUrl = navigatedTabs.get(tabId)?.url!;
+        const match = checkUrl(targetUrl);
+        const self = match === chromeInstanceId.value;
+        if (!self && !changeInfo.url?.startsWith('chrome-extension://')) {
+          processTargetUrl(tabId, targetUrl, match, self);
+        }
+      }
+    }
+  }); // chrome tabs onUpdated
+
+  addHandler<any>('openurl', (message) => {
+    if (message.payload.targetUserprofile === chromeInstanceId.value) {
+      addLogline({
+        tabId: message.payload.originaltab,
+        status: TabStatusEnum.Created,
+        url: message.payload.url,
+        targetUserprofile: chromeInstanceId.value
+      });
+      chrome.tabs.create({ url: message.payload.url });
+      sendSignalrMessage({
+        type: 'removetab',
+        payload: {
+          targetUserprofile: message.payload.originalUserprofile,
+          tab: message.payload.originaltab
+        }
+      });
+    }
+  });
+
+  addHandler<{ targetUserprofile: string, tab: number }>('removetab', (message) => {
+    if (message.payload!.targetUserprofile === chromeInstanceId.value) {
+      updateLoglineToRemovedState(message.payload!.tab);
+      chrome.tabs.remove(message.payload!.tab);
+    }
+  });
+
+  popupmessagingInstance.messageHandlers.set('getlog', (message, port) => {
+    popupmessagingInstance.sendMessage({
+      type: 'log',
+      payload: log
+    });
+  });
+
+  chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+    if (tabs.has(tabId)) {
+      tabs.delete(tabId);
+    }
+  });
+
+  chrome.storage.local.get<{ log?: Array<ITabStatus> }>('log', value => {
+    if (value.log) {
+      log = value.log;
+    }
+  });
+
+  chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+    navigatedTabs.set(details.tabId, details);
+  });
+}

@@ -7,16 +7,15 @@ The solution comprises two parts:
 * Azure static web app with two parts:
   - Angular front-end: app
   - Functions back-end: api
-* Chrome extension, with two parts:
-  - Scripts: background and content script: chromeextension
-  - Angular extension page: chromeextension/popup
+* Chrome extension (Manifest V3, built with WXT):
+  - Background and content script: chromeextension
+  - Management UI (rules, user profiles, log): React options page in chromeextension/entrypoints/options
 * Azure SignalR Service
   - Connected with the background script in order to communicate messages across Chrome user profiles
-  - Utilizes Azure Active Directory authentication to ensure fair use
 
 # Implementation
 Execute the following steps to run the solution locally:
 * install func global tool
 * npm run install:all
 * npm run watch:all
-* add chromeextension/dist folder as an unpacked chrome extension
+* add chromeextension/.output/chrome-mv3 folder as an unpacked chrome extension

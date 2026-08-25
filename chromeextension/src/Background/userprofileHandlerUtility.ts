@@ -1,13 +1,13 @@
-import { IUserProfileStatus } from "../Shared/UserprofileModels";
+import type { IUserProfileStatus } from "../Shared/UserprofileModels";
 
 export function mergeUserprofiles(currentProfileId: string, existingUserprofiles: IUserProfileStatus[], incomingUserprofiles: IUserProfileStatus[]|undefined) {
-    const mergedMap = new Map<string, IUserProfileStatus>();  
+    const mergedMap = new Map<string, IUserProfileStatus>();
     let haschanges = false;
 
     const threeMonthsAgo = Date.now() - (3 * 30 * 24 * 60 * 60 * 1000);
     incomingUserprofiles?.forEach(u => {
         let skip = false;
-        if (!u.updated) { 
+        if (!u.updated) {
             // ensure the updated datetime is set for deleted records
             u.updated = Date.now();
         }
@@ -17,19 +17,19 @@ export function mergeUserprofiles(currentProfileId: string, existingUserprofiles
                 haschanges = true;
                 u.deleted = false;
                 u.updated = Date.now();
-            } else {                
+            } else {
                 if (u.updated < threeMonthsAgo) {
                     // skip old deleted records
                     skip = true;
                 }
-            }   
+            }
         }
 
-        if (!skip) { 
-            mergedMap.set(u.chromeInstanceId!, u); 
+        if (!skip) {
+            mergedMap.set(u.chromeInstanceId!, u);
         }
     });
-    
+
     existingUserprofiles.forEach(u => {
         // ensure updated property is set for existing records:
         if (!u.updated) {
@@ -38,19 +38,19 @@ export function mergeUserprofiles(currentProfileId: string, existingUserprofiles
         // ensure deleted record is fresh:
         if (!u.deleted || u.updated > threeMonthsAgo) {
             if (mergedMap.has(u.chromeInstanceId!)) {
-                const found = mergedMap.get(u.chromeInstanceId!)!;            
+                const found = mergedMap.get(u.chromeInstanceId!)!;
                 if (u?.updated && (!found.updated || found.updated < u.updated)) {
                     haschanges = true;
                     found.name = u.name;
                     if (u.chromeInstanceId !== currentProfileId) {
                         found.deleted = u.deleted;
-                    }        
+                    }
                 }
             }
-            else {                
+            else {
                 haschanges = true;
                 mergedMap.set(u.chromeInstanceId!, u);
-            }        
+            }
         }
     });
 

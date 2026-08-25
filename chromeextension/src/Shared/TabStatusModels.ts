@@ -12,4 +12,3 @@ export interface ITabStatus {
     url: string,
     targetUserprofile?: string
 }
-

@@ -1,13 +1,19 @@
-import { IMessageType } from "../Shared/MessageModels";
+import type { IMessageType } from "../Shared/MessageModels";
 
 type ICallback<T> = (message: IMessageType<T>, port: chrome.runtime.Port) => void;
 type ICallbackAny = (message: IMessageType<any>, port: chrome.runtime.Port) => void;
+
+const ports = new Map<string, BackgroundChromeMessagingWithPort>();
 
 export class BackgroundChromeMessagingWithPort {
   messageHandlers = new Map<string, ICallbackAny>();
   ports = new Set<chrome.runtime.Port>();
 
-  static getInstance(name: string): BackgroundChromeMessagingWithPort {    
+  // Note: getInstance() itself calls chrome.runtime.onConnect.addListener via
+  // the constructor below, so — same rule as everywhere else in Background/*
+  // — only call this from a register() function invoked from an entrypoint's
+  // main(), never at a module's own top level.
+  static getInstance(name: string): BackgroundChromeMessagingWithPort {
     if (ports.has(name)) {
       return ports.get(name)!;
     }
@@ -15,14 +21,13 @@ export class BackgroundChromeMessagingWithPort {
     ports.set(name, instance);
     return instance;
   }
-  
+
   private constructor(name: string) {
     chrome.runtime.onConnect.addListener(port => {
       if (port.name === name) {
         this.ports.add(port);
         port.onMessage.addListener((message, port) => {
-          console.log('port listener', message, port);
-          if (this.messageHandlers.has(message.type)) {            
+          if (this.messageHandlers.has(message.type)) {
             return this.messageHandlers.get(message.type)!(message, port);
           }
         });
@@ -31,15 +36,10 @@ export class BackgroundChromeMessagingWithPort {
         });
       }
     });
-       
   }
-  
+
   // TODO: we should implement a narrow port specific request response pattern. for now the response gets broadcasted to all open ports
   sendMessage(message: IMessageType<any>): void {
-    console.log('sendmessage', this.ports);
-    this.ports.forEach(port => port.postMessage(message));    
+    this.ports.forEach(port => port.postMessage(message));
   }
 }
-
-const ports = new Map<string, BackgroundChromeMessagingWithPort>();
-
