@@ -13,7 +13,7 @@
     "chromeextension:prod": "npm run --prefix chromeextension zip",
     "func:start": "npm run --prefix api start",
     "func:build:watch": "npm run --prefix api watch",
-    "app:start": "npm run --prefix app start",
+    "app:start": "npm run --prefix app dev",
     "watch:all": "npm-run-all --parallel func:start chromeextension:scripts:build:watch func:build:watch app:start",
     "install:all": "npm-run-all chromeextension:scripts:install func:install app:install",
     "chromeextension:scripts:install": "npm run --prefix chromeextension install",

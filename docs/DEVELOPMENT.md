@@ -73,7 +73,7 @@ This runs the following in parallel:
 
 - the Azure Functions host for `api/`
 - `chromeextension` dev build (`wxt`, watch mode with HMR)
-- `app` start (`ng serve`)
+- `app` dev server (Vite, http://localhost:4200)
 
 Typical local development flow:
 
@@ -135,17 +135,20 @@ Commands:
 
 ### `app/`
 
-`app/` is an Angular 11 project using the standard Angular CLI.
+`app/` is a Vite + React single-page app.
 
 Commands:
 
 - Start:
 
   ```bash
-  npm start
+  npm run dev
   ```
 
-  Runs `ng serve --proxy-config proxy.conf.json`, serving the app at `http://localhost:4200`.
+  Serves the app at `http://localhost:4200`. Port 4200 is load-bearing: the extension's content
+  script matches `http://localhost/*`. `/api` requests are proxied to `http://localhost:7071`
+  with a fake `x-ms-client-principal` header so `/api/groupcode` works against a locally running
+  Functions host.
 
 - Build:
 
@@ -153,24 +156,20 @@ Commands:
   npm run build
   ```
 
-- Unit tests (Karma):
+  Production build to `dist/app` — the output path the Azure Static Web Apps workflow expects.
+
+- Typecheck:
 
   ```bash
-  npm test
-  ```
-
-- Lint:
-
-  ```bash
-  npm run lint
+  npm run typecheck
   ```
 
 Important local behavior:
 
-- The app depends on the `api/` functions being reachable through the proxy config for
-  `/.auth/me` and `/api/groupcode`
+- The app depends on the `api/` functions being reachable through the dev-server proxy for
+  `/api/groupcode`
 - `/.auth/me` is an Azure Static Web Apps platform feature and is **not** available when running
-  only `func start` locally
+  only the Vite dev server or `func start` locally; the auth card will report an error by design
 - The full auth flow only works once deployed to Azure Static Web Apps, or when using the Azure
   Static Web Apps CLI (`swa`), which is **not** part of this repo's current tooling
 

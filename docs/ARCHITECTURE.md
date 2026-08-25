@@ -13,7 +13,7 @@ The repository is a monorepo with **3 independent npm projects**.
 
 ### `app/`
 
-Angular 11 front-end for an **Azure Static Web App**.
+Vite + React single-page app for an **Azure Static Web App**.
 
 Responsibilities:
 
@@ -23,12 +23,17 @@ Responsibilities:
 
 Relevant details:
 
-- `AzureAuthentication` calls `/.auth/me` and exposes an `isLoggedIn` observable
-- `GroupcodeHandler` fetches `/api/groupcode`
-- `GroupcodeHandler` also relays the group code to/from a content script via `window` events, so
-  a logged-in browser tab can pass the group code to the extension in the same Chrome profile
-- `app/staticwebapp.config.json` rewrites non-asset routes to `index.html` for SPA routing,
-  except:
+- `src/stores/authStore.ts` calls `/.auth/me` and exposes the login state
+- `src/stores/groupcodeStore.ts` fetches `/api/groupcode`
+- `src/stores/groupcodeStore.ts` also relays the group code to/from a content script via `window`
+  CustomEvents (`src/messaging/documentEventing.ts`, same contract as the extension's
+  `DocumentEventing.ts`), so a logged-in browser tab can pass the group code to the extension in
+  the same Chrome profile
+- The dev server runs on port **4200** (`vite.config.ts`) because the extension's content script
+  matches `http://localhost/*`, and proxies `/api` to a local Functions host with a fake
+  `x-ms-client-principal` header
+- `app/public/staticwebapp.config.json` is copied verbatim into the build output and rewrites
+  non-asset routes to `index.html` for SPA routing, except:
   - `/images/*.{png,jpg,gif}`
   - `/css/*`
 

@@ -5,7 +5,7 @@ You can install it through https://chrome.google.com/webstore/detail/chrome-tab-
 # Architecture
 The solution comprises two parts:
 * Azure static web app with two parts:
-  - Angular front-end: app
+  - Front-end (Vite + React): app
   - Functions back-end: api
 * Chrome extension (Manifest V3, built with WXT):
   - Background and content script: chromeextension

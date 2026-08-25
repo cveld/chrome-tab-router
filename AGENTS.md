@@ -10,8 +10,9 @@ to own it. Published at the Chrome Web Store (see README.md).
 
 The repo is a monorepo of three independent npm projects, orchestrated from the root:
 
-- `app/` — Angular 11 front-end for an Azure Static Web App. Handles login (via Static Web
-  Apps' built-in `/.auth/me`) and issuing/displaying the shared group code.
+- `app/` — Vite + React single-page app for an Azure Static Web App. Handles login (via Static
+  Web Apps' built-in `/.auth/me`) and issuing/displaying the shared group code, and hands the
+  group code to the extension through a window-event bridge.
 - `api/` — Azure Functions (Node/TypeScript, webpack-bundled) backing the static web app:
   SignalR negotiate + message relay, group code issuance, AES encryption of the auth payload.
 - `chromeextension/` — the extension itself: Manifest V3, built with WXT (Vite-based). React
@@ -39,9 +40,10 @@ and `EncryptionKey` first):
 - `npm start` — `func start` (runs the built functions).
 - `npm test` — no-op; there are no real tests for `api/`.
 
-`app/` (standard Angular CLI project):
-- `npm start` — `ng serve --proxy-config proxy.conf.json` on port 4200.
-- `npm run build`, `npm test` (Karma), `npm run lint`.
+`app/` (Vite + React):
+- `npm run dev` — dev server on port 4200 with `/api` proxied to a local Functions host.
+- `npm run build` — production build to `dist/app` (the path the SWA workflow expects).
+- `npm run typecheck`.
 
 `chromeextension/` (WXT + React + vitest):
 - `npm run dev` — dev build with HMR against `.env` URLs.
@@ -143,11 +145,12 @@ referenced from that function's `function.json`:
 
 ### `app/`
 
-Thin Angular shell: `AzureAuthentication` service calls `/.auth/me` and exposes `isLoggedIn`;
-`GroupcodeHandler` fetches `/api/groupcode` and relays the group code to/from a content script via
-`window` events, so a logged-in browser tab can hand the group code to the extension running in
-that same Chrome profile. `app/staticwebapp.config.json` rewrites all non-asset routes to
-`index.html` (SPA fallback).
+Thin React shell (no router): `stores/authStore.ts` calls `/.auth/me` and exposes the login
+state; `stores/groupcodeStore.ts` fetches `/api/groupcode` and relays the group code to/from a
+content script via `window` CustomEvents (`src/messaging/documentEventing.ts`, contract shared
+with the extension's `DocumentEventing.ts`), so a logged-in browser tab can hand the group code
+to the extension running in that same Chrome profile. `app/public/staticwebapp.config.json`
+rewrites all non-asset routes to `index.html` (SPA fallback).
 
 ### Deployment
 
@@ -171,11 +174,11 @@ so no Angular app or Static Web App EasyAuth is needed to exercise the backend:
 3. `cd chromeextension && npm run build:localfunc` builds `.output/chrome-mv3-localfunc`
    with `WXT_API_BASE_URL=http://localhost:7071` (from `.env.localfunc`; `dev:localfunc`
    exists too). Load it via chrome://extensions > Load unpacked.
-4. Optional, for the groupcode flow: `app\scripts\serve-local.cmd` serves the Angular
-   webapp on http://localhost:4200 pinned to portable Node 16 (Angular 11 = webpack 4).
-   `app/proxy.conf.json` injects a fake `x-ms-client-principal` header so Generate works
-   without Static Web Apps EasyAuth; the content script matches `http://localhost/*`, so
-   a generated group code is handed to the extension automatically.
+4. Optional, for the groupcode flow: `cd app && npm run dev` serves the webapp on
+   http://localhost:4200 (plain Node is fine; no version pinning needed since the Vite
+   migration). `vite.config.ts` injects a fake `x-ms-client-principal` header on `/api`
+   so Generate works without Static Web Apps EasyAuth; the content script matches
+   `http://localhost/*`, so a generated group code is handed to the extension automatically.
 5. `node scripts/smoke-test.js [groupcode-uuid]` verifies negotiate + messages without
    a browser.
 
