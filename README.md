@@ -15,7 +15,8 @@ The solution comprises two parts:
 
 # Implementation
 Execute the following steps to run the solution locally:
-* install func global tool
+* install func global tool: `winget upgrade --id Microsoft.Azure.FunctionsCoreTools --accept-package-agreements --accept-source-agreements` (or `winget install` if not yet installed) — must stay on the v4 line, matching the v4 programming model / Node 22+ requirement
+* npm install (installs root tooling, e.g. npm-run-all, needed to run install:all)
 * npm run install:all
 * npm run watch:all
 * add chromeextension/.output/chrome-mv3 folder as an unpacked chrome extension
