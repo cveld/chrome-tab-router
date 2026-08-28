@@ -27,6 +27,7 @@ export default defineConfig({
   // `*.localhost` resolves to 127.0.0.1 without any hosts-file edits.
   dev: {
     server: {
+      host: '0.0.0.0',
       port: 3001,
       origin: 'https://chrome-tab-router.localhost',
     },
