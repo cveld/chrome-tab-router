@@ -23,13 +23,12 @@ export default defineConfig({
   },
   // Local dev only. Vite/HMR binds to localhost:3001, but the extension's
   // bundled runtime code (options page, HMR client) is told to reach it via
-  // http://chrome-tab-router.localhost instead, proxied through Caddy —
-  // see Caddyfile route below. `*.localhost` resolves to 127.0.0.1 without
-  // any hosts-file edits.
+  // https://chrome-tab-router.localhost instead, proxied through Caddy with TLS.
+  // `*.localhost` resolves to 127.0.0.1 without any hosts-file edits.
   dev: {
     server: {
       port: 3001,
-      origin: 'http://chrome-tab-router.localhost',
+      origin: 'https://chrome-tab-router.localhost',
     },
   },
 });
