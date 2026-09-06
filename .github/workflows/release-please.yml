@@ -69,8 +69,22 @@ jobs:
         run: |
           set -euo pipefail
           ZIP_FILE=$(ls .output/*.zip)
-          curl -sf -H "Authorization: Bearer ${ACCESS_TOKEN}" -X POST \
+
+          upload_status=$(curl -s -o upload_response.json -w '%{http_code}' \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" -X POST \
             -T "${ZIP_FILE}" \
-            "https://chromewebstore.googleapis.com/upload/v2/publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}:upload"
-          curl -sf -H "Authorization: Bearer ${ACCESS_TOKEN}" -X POST \
-            "https://chromewebstore.googleapis.com/v2/publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}:publish"
+            "https://chromewebstore.googleapis.com/upload/v2/publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}:upload")
+          cat upload_response.json
+          if [ "${upload_status}" -ge 400 ]; then
+            echo "Upload failed with HTTP ${upload_status}" >&2
+            exit 1
+          fi
+
+          publish_status=$(curl -s -o publish_response.json -w '%{http_code}' \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" -X POST \
+            "https://chromewebstore.googleapis.com/v2/publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}:publish")
+          cat publish_response.json
+          if [ "${publish_status}" -ge 400 ]; then
+            echo "Publish failed with HTTP ${publish_status}" >&2
+            exit 1
+          fi
