@@ -358,3 +358,4 @@ __tablestorage__/
 # Local skills
 .claude/skills/chrome-relay
 .agents/skills/chrome-relay
+skills-lock.json
