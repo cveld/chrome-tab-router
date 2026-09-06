@@ -21,15 +21,16 @@ export default defineConfig({
       extension_pages: "script-src 'self'; object-src 'self'",
     },
   },
-  // Local dev only. Vite/HMR binds to localhost:3001, but the extension's
-  // bundled runtime code (options page, HMR client) is told to reach it via
-  // http://chrome-tab-router.localhost instead, proxied through Caddy —
-  // see Caddyfile route below. `*.localhost` resolves to 127.0.0.1 without
-  // any hosts-file edits.
+  // Local dev only. WXT injects `dev.server.origin` into the extension's
+  // manifest CSP (script-src) so the HMR client can load. Chrome's MV3
+  // validator only allows 'self'/'wasm-unsafe-eval' there plus one carve-out
+  // for unpacked extensions: the literal http://localhost or http://127.0.0.1
+  // host (any port) — no other scheme or hostname passes, so this can't be
+  // routed through a Caddy `*.localhost` HTTPS proxy. Pin the port so it's
+  // predictable across restarts.
   dev: {
     server: {
       port: 3001,
-      origin: 'http://chrome-tab-router.localhost',
     },
   },
 });

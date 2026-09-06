@@ -13,7 +13,7 @@ The repo is a monorepo of three independent npm projects, orchestrated from the 
 - `app/` — Vite + React single-page app for an Azure Static Web App. Handles login (via Static
   Web Apps' built-in `/.auth/me`) and issuing/displaying the shared group code, and hands the
   group code to the extension through a window-event bridge.
-- `api/` — Azure Functions (TypeScript, v4 programming model, Node 20+) backing the static web app:
+- `api/` — Azure Functions (TypeScript, v4 programming model, Node 22+/LTS) backing the static web app:
   SignalR negotiate + message relay, group code issuance, AES encryption of the auth payload.
 - `chromeextension/` — the extension itself: Manifest V3, built with WXT (Vite-based). React
   19 background/content/options entrypoints under `entrypoints/`; shared logic under `src/`.
@@ -169,9 +169,9 @@ so no web app or Static Web App EasyAuth is needed to exercise the backend:
 
 1. `cd api`: copy `local.settings.sample.json` to `local.settings.json` and fill in
    `AzureSignalRConnectionString` + `EncryptionKey` (the deployed values live in the
-   Static Web App's app settings). Then run `scripts\start-func-node20.cmd`, which pins
-   a portable Node onto PATH (the Functions Node worker rejects the machine default
-   Node 24) and runs `func start` on http://localhost:7071.
+   Static Web App's app settings). Then run `func start` on http://localhost:7071
+   from the `api` dir. A supported Node LTS is fine (Node 22/24 work; the old note
+   that the worker rejects Node 24 is outdated). `npm run watch:all` starts `func` for you.
 2. `node scripts/mint-groupcode.cjs` mints a test group code blob (same AES scheme as
    `api/src/functions/groupcode`). Paste the printed one-liner into the extension service-worker
    console; setting `chrome.storage.local` triggers an immediate SignalR reconnect.
