@@ -1,27 +1,25 @@
-# App
+# Chrome Tab Router web app
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 11.2.5.
+Small Vite + React single-page app that runs on an Azure Static Web App next to the
+`api/` Functions backend.
 
-## Development server
+Responsibilities:
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+- Show EasyAuth status (`/.auth/me`) with login/logout links
+- Mint a shared group code via `/api/groupcode` (or accept a pasted one)
+- Hand the group code to the Chrome Tab Router extension through a window-event bridge
+  to the extension's content script (see `src/messaging/documentEventing.ts`; the
+  extension-side counterpart lives in `chromeextension/src/Messaging/DocumentEventing.ts`)
 
-## Code scaffolding
+## Commands
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- `npm run dev` — dev server on http://localhost:4200 (port is load-bearing: the
+  extension content script matches `http://localhost/*` and `chromeextension/.env`
+  points `WXT_CONFIG_URL` here). `/api` is proxied to a locally running Functions host
+  with a fake `x-ms-client-principal` header.
+- `npm run build` — production build to `dist/app` (the path the Static Web Apps
+  workflow expects).
+- `npm run typecheck`
 
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+Note: `/.auth/me` only works when served by Azure Static Web Apps (or the SWA CLI);
+against a bare dev server it will report an error by design.

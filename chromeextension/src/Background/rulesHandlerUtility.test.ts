@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import * as rulesHandlerUtility from './rulesHandlerUtility';
 describe('rulesHandlerUtility - mergeRules', () => {
     it('runs when new values are undefined', () => {

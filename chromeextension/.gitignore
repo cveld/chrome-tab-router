@@ -3,5 +3,9 @@ node_modules/
 dist/
 distprod/
 tmp/
+.output/
+.wxt/
+*.local
+dev.log
 
 #src/settings/settings.json

@@ -1,6 +1,7 @@
+import { describe, expect, it } from 'vitest';
 import * as userprofileHandlerUtility from './userprofileHandlerUtility';
 import {v4 as uuidv4} from 'uuid';
-import { IUserProfileStatus } from '../Shared/UserprofileModels';
+import type { IUserProfileStatus } from '../Shared/UserprofileModels';
 
 describe('rulesHandlerUtility - mergeRules', () => {
     const currentprofileid = uuidv4();
@@ -27,7 +28,7 @@ describe('rulesHandlerUtility - mergeRules', () => {
                 chromeInstanceId: uuidv4()                
             };
             const result = userprofileHandlerUtility.mergeUserprofiles(currentprofileid, [], [newItem]);            
-            expect(result.merged[0].updated).toBeDefined();
+            expect(result.merged[0]!.updated).toBeDefined();
         });
         it('provided outdated deleted item, is not added to the result', () =>{
             const newItem : IUserProfileStatus = {
@@ -44,7 +45,7 @@ describe('rulesHandlerUtility - mergeRules', () => {
                 deleted: true
             };
             const result = userprofileHandlerUtility.mergeUserprofiles(currentprofileid, [], [newItem]);            
-            expect(result.merged[0].deleted).toBeFalsy();
+            expect(result.merged[0]!.deleted).toBeFalsy();
         });
         it('provided some profile as deleted, is added to the result', () => {
             const newItem : IUserProfileStatus = {
@@ -52,7 +53,7 @@ describe('rulesHandlerUtility - mergeRules', () => {
                 deleted: true
             };
             const result = userprofileHandlerUtility.mergeUserprofiles(currentprofileid, [], [newItem]);            
-            expect(result.merged[0].deleted).toBeTruthy();
+            expect(result.merged[0]!.deleted).toBeTruthy();
         });
     }); // describe empty array
     describe('existing array contains one user profile', () => {
@@ -61,7 +62,7 @@ describe('rulesHandlerUtility - mergeRules', () => {
                 chromeInstanceId: uuidv4()                
             };
             const result = userprofileHandlerUtility.mergeUserprofiles(currentprofileid, [existingItem], []);            
-            expect(result.merged[0].updated).toBeDefined();
+            expect(result.merged[0]!.updated).toBeDefined();
         });
         it('with old item which is not deleted, is not removed from the result', () => {
             const existingItem : IUserProfileStatus = {

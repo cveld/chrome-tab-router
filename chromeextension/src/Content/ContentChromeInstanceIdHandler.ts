@@ -1,8 +1,6 @@
 import { sendMessage } from '../Messaging/ChromeMessaging';
 import { eventHandlers, dispatchEventToPage } from '../Messaging/DocumentEventing';
 
-eventHandlers.set('getchromeinstanceid', getchromeinstanceidHandler);
-
 async function getchromeinstanceidHandler(...args: any) {
   const result = await sendMessage({ type: 'getchromeinstanceid' });
   dispatchEventToPage({
@@ -11,4 +9,6 @@ async function getchromeinstanceidHandler(...args: any) {
   });
 }
 
-console.log('chromeinstanceidhandler loaded');
+export function registerContentChromeInstanceIdHandler() {
+  eventHandlers.set('getchromeinstanceid', getchromeinstanceidHandler);
+}

@@ -1,5 +1,5 @@
 /// <reference types="chrome"/>
-import { IMessageType } from "../Shared/MessageModels";
+import type { IMessageType } from "../Shared/MessageModels";
 
 const ports = new Map<string, ScriptChromeMessagingWithPort>();
 

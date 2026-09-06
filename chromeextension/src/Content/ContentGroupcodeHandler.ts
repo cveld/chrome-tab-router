@@ -1,13 +1,11 @@
 import { sendMessage } from '../Messaging/ChromeMessaging';
-import { eventHandlers, dispatchEventToPage, eventDispatchTargetId } from '../Messaging/DocumentEventing';
-import { IMessageType } from '../Shared/MessageModels';
-
-eventHandlers.set('groupcode', setGroupcodeHandler);
+import { eventHandlers, dispatchEventToPage } from '../Messaging/DocumentEventing';
+import type { IMessageType } from '../Shared/MessageModels';
 
 async function setGroupcodeHandler(message: IMessageType<any>) {
-  const result = await sendMessage({ 
-      type: 'groupcode',
-      payload: message.payload
+  await sendMessage({
+    type: 'groupcode',
+    payload: message.payload
   });
 
   dispatchEventToPage({
@@ -16,7 +14,7 @@ async function setGroupcodeHandler(message: IMessageType<any>) {
   });
 }
 
-eventHandlers.set('getgroupcode', async () => {
+async function getGroupcodeHandler() {
   const result = await sendMessage({
     type: 'getgroupcode'
   });
@@ -24,6 +22,9 @@ eventHandlers.set('getgroupcode', async () => {
     type: 'groupcode',
     payload: result
   });
-});
+}
 
-console.log('contentgroupcodehandler loaded');
+export function registerContentGroupcodeHandler() {
+  eventHandlers.set('groupcode', setGroupcodeHandler);
+  eventHandlers.set('getgroupcode', getGroupcodeHandler);
+}

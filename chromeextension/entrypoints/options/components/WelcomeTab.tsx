@@ -1,0 +1,31 @@
+import { configUrl } from '../../../src/Background/settings';
+
+export function openGroupcodeApp() {
+  void chrome.tabs.create({ url: configUrl });
+}
+
+export function WelcomeTab() {
+  return (
+    <section className="narrow">
+      <h1>Chrome Tab Router</h1>
+      <p>
+        This extension enables you to define the preferred Chrome user profile where you would
+        like to open your website.
+      </p>
+      <p>
+        The extension connects with an external webservice that provides the communication between
+        the various user profiles you have running.
+      </p>
+      <h2>Groupcode</h2>
+      <p>
+        In order to connect user profiles together a <b>groupcode</b> is required.
+      </p>
+      <p>For the very first user profile you are setting up you will need to generate a groupcode.</p>
+      <p>For subsequent user profiles you will copy over the generated groupcode yourself.</p>
+      <p>In this way the user profiles get connected.</p>
+      <button type="button" className="btn primary" onClick={openGroupcodeApp}>
+        Generate
+      </button>
+    </section>
+  );
+}

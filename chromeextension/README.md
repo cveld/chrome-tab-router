@@ -1,38 +1,11 @@
 # Chrome Tab Router Chrome Extension
 
-Source code based on Chrome Extension TypeScript Starter.
-
-![build](https://github.com/chibat/chrome-extension-typescript-starter/workflows/build/badge.svg)
-
-Chrome Extension, TypeScript and Visual Studio Code
+MV3 extension (built with [WXT](https://wxt.dev)) that routes URLs to the desired
+user profiles.
 
 ## Prerequisites
 
-* [node + npm](https://nodejs.org/) (Current Version)
-
-## Option
-
-* [Visual Studio Code](https://code.visualstudio.com/)
-
-## Includes the following
-
-* TypeScript
-* Webpack
-* React
-* Jest
-* Example Code
-    * Chrome Storage
-    * Options Version 2
-    * content script
-    * count up badge number
-    * background
-
-## Project Structure
-
-* src/typescript: TypeScript source files
-* src/assets: static files
-* dist: Chrome Extension directory
-* dist/js: Generated JavaScript files
+* [node + npm](https://nodejs.org/) (Current / LTS version)
 
 ## Setup
 
@@ -40,9 +13,17 @@ Chrome Extension, TypeScript and Visual Studio Code
 npm install
 ```
 
-## Import as Visual Studio Code project
+## Develop
 
-...
+Run WXT in watch mode with HMR:
+
+```
+npm run dev
+```
+
+The dev server runs on `http://chrome-tab-router.localhost:3001` (proxied through
+Caddy; see the `Caddyfile`). Load `.output/chrome-mv3-dev` as an unpacked
+extension in Chrome.
 
 ## Build
 
@@ -50,23 +31,28 @@ npm install
 npm run build
 ```
 
-## Build in watch mode
+Output is written to `.output/chrome-mv3`, which can be loaded as an unpacked
+extension. Use `npm run zip` to produce a distributable `.zip`.
 
-### terminal
-
-```
-npm run watch
-```
-
-### Visual Studio Code
-
-Run watch mode.
-
-type `Ctrl + Shift + B`
-
-## Load extension to chrome
-
-Load `dist` directory
+There are also variants that target the remote Azure backend (`npm run dev:azure`
+/ `npm run build:azure`) and the local Function App (`npm run dev:localfunc` /
+`npm run build:localfunc`).
 
 ## Test
-`npx jest` or `npm run test`
+
+```
+npm test
+```
+
+Unit tests run with Vitest. Formatting is handled by Prettier (`npm run style`).
+
+## Project Structure
+
+* `entrypoints/` — WXT entrypoints: `background.ts`, `content.ts`, and the React
+  `options/` page.
+* `entrypoints/options/components/` — React UI components for the options page.
+* `src/Background/` — background service-worker logic (rules, user profiles,
+  SignalR, tab routing, badge/watchdog handlers).
+* `src/Content/` — content-script logic.
+* `src/Messaging/` — messaging between background and content scripts.
+* `src/Shared/` — shared models shared across background/content/options.
