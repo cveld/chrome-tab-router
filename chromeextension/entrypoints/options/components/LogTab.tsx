@@ -1,5 +1,5 @@
-import { tabLogStore } from '../lib/backgroundStores';
-import { useStore } from '../lib/stores';
+import { tabLogStore } from '../../../src/UI/backgroundStores';
+import { useStore } from '../../../src/UI/stores';
 
 export function LogTab() {
   // Newest entries first.
