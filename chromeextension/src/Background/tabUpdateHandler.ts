@@ -4,6 +4,10 @@ import { checkUrl } from './rulesHandler';
 import { addHandler, sendSignalrMessage } from './signalrmessages';
 import { TabStatusEnum } from '../Shared/TabStatusModels';
 import type { ITabStatus } from '../Shared/TabStatusModels';
+import type { IRouteTabRequest } from '../Shared/MessageModels';
+import { shouldPromptInterstitial } from '../Shared/SettingsModels';
+import { interstitialSettings } from './interstitialSettingsHandler';
+import { userprofiles } from './userprofilesHandler';
 
 // List that captures the handling state of a created tab
 const tabs = new Set<number>();
@@ -36,6 +40,46 @@ function processTargetUrl(tabId: number, targetUrl: string, match: string | unde
       }
     });
   }
+}
+
+function otherProfileCount() {
+  return userprofiles.value.filter(
+    profile => !profile.deleted && profile.chromeInstanceId !== chromeInstanceId.value
+  ).length;
+}
+
+// Hands the tab to the interstitial router page, which lets the user confirm,
+// redirect or cancel the routing decision (see entrypoints/router).
+function promptForTargetUrl(tabId: number, targetUrl: string, match: string | undefined) {
+  addLogline({
+    tabId: tabId,
+    status: TabStatusEnum.Prompting,
+    url: targetUrl,
+    targetUserprofile: match
+  });
+  chrome.tabs.update(tabId, {
+    url: `${chrome.runtime.getURL('router.html')}?url=${encodeURIComponent(targetUrl)}`
+  });
+}
+
+function openTabHere(request: IRouteTabRequest) {
+  addLogline({
+    tabId: request.tabId,
+    status: TabStatusEnum.Cancelled,
+    url: request.url,
+    targetUserprofile: chromeInstanceId.value
+  });
+  chrome.tabs.update(request.tabId, { url: request.url });
+}
+
+function handleTargetUrl(tabId: number, targetUrl: string) {
+  const match = checkUrl(targetUrl);
+  const self = match === chromeInstanceId.value;
+  if (shouldPromptInterstitial(interstitialSettings.value, !!match, self, otherProfileCount())) {
+    promptForTargetUrl(tabId, targetUrl, match);
+    return;
+  }
+  processTargetUrl(tabId, targetUrl, match, self);
 }
 
 function updateLoglineToRemovedState(tabId: number) {
@@ -78,9 +122,7 @@ export function registerTabUpdateHandler() {
       // Check whether user clicked new tab operation:
       if (targetUrl !== 'chrome://newtab/' && !targetUrl.startsWith('chrome-extension://')) {
         // If not, we will validate the incoming url and route if required:
-        const match = checkUrl(targetUrl);
-        const self = match === chromeInstanceId.value;
-        processTargetUrl(tab.id!, targetUrl, match, self);
+        handleTargetUrl(tab.id!, targetUrl);
       }
     }
     popupmessagingInstance.sendMessage({
@@ -102,10 +144,9 @@ export function registerTabUpdateHandler() {
       if (tabs.has(tabId)) {
         tabs.delete(tabId);
         const targetUrl = navigatedTabs.get(tabId)?.url!;
-        const match = checkUrl(targetUrl);
-        const self = match === chromeInstanceId.value;
+        const self = checkUrl(targetUrl) === chromeInstanceId.value;
         if (!self && !changeInfo.url?.startsWith('chrome-extension://')) {
-          processTargetUrl(tabId, targetUrl, match, self);
+          handleTargetUrl(tabId, targetUrl);
         }
       }
     }
@@ -135,6 +176,20 @@ export function registerTabUpdateHandler() {
       updateLoglineToRemovedState(message.payload!.tab);
       chrome.tabs.remove(message.payload!.tab);
     }
+  });
+
+  // Decisions taken by the user on the interstitial router page:
+  popupmessagingInstance.messageHandlers.set('routetab', (message) => {
+    const request = message.payload as IRouteTabRequest;
+    if (request.targetUserprofile === chromeInstanceId.value) {
+      openTabHere(request);
+      return;
+    }
+    processTargetUrl(request.tabId, request.url, request.targetUserprofile, false);
+  });
+
+  popupmessagingInstance.messageHandlers.set('opentabhere', (message) => {
+    openTabHere(message.payload as IRouteTabRequest);
   });
 
   popupmessagingInstance.messageHandlers.set('getlog', (message, port) => {

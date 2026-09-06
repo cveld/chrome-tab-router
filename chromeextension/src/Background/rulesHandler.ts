@@ -3,20 +3,12 @@ import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChrome
 import { listeners } from './chromestorage';
 import { sendSignalrMessage, addHandler } from './signalrmessages';
 import { mergeRules } from './rulesHandlerUtility';
+import { findMatchingRule } from '../Shared/ruleMatching';
 
 export let rules = new Array<IRule>();
 
 export function checkUrl(url: string): string | undefined {
-  const index = rules.findIndex(value => {
-    if (!value.deleted && value.regex) {
-      const regex = new RegExp(value.regex);
-      return regex.test(url);
-    }
-  });
-  if (index === -1) {
-    return undefined;
-  }
-  return rules[index]!.targetUserprofile;
+  return findMatchingRule(rules, url)?.targetUserprofile;
 }
 
 export function registerRulesHandler() {

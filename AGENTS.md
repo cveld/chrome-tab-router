@@ -16,7 +16,8 @@ The repo is a monorepo of three independent npm projects, orchestrated from the 
 - `api/` — Azure Functions (TypeScript, v4 programming model, Node 22+/LTS) backing the static web app:
   SignalR negotiate + message relay, group code issuance, AES encryption of the auth payload.
 - `chromeextension/` — the extension itself: Manifest V3, built with WXT (Vite-based). React
-  19 background/content/options entrypoints under `entrypoints/`; shared logic under `src/`.
+  19 background/content/options/router entrypoints under `entrypoints/`; shared logic under `src/`
+  (`src/UI/` holds the React code both extension pages share).
 
 The extension's management UI (rules, user profiles, tab log, connection status) is a React app
 in `chromeextension/entrypoints/options/`, opened as a full tab via
@@ -68,11 +69,15 @@ extension via `chrome://extensions` (Developer mode).
    registers each Chrome profile as a **user profile**. Both are persisted to
    `chrome.storage.local` per-profile and synced across profiles over an Azure SignalR hub
    (`chat`), scoped by a shared **group code**.
-2. When a tab navigates to a URL, the background script matches it against the rules
-   (`checkUrl()` in `rulesHandler.ts`). If it matches a rule whose target isn't the current
-   profile, an `openurl` SignalR message is sent.
+2. When a new tab opens, `handleTargetUrl()` in `tabUpdateHandler.ts` matches the URL against the
+   rules (`checkUrl()` in `rulesHandler.ts`). If `shouldPromptInterstitial()` allows it, the tab is
+   redirected to `router.html?url=<encoded>` and logged as `Prompting`; otherwise the URL is routed
+   straight away with an `openurl` SignalR message, as before. Prompting is skipped when the mode is
+   `off`, when the matching rule targets the current profile, or when no other user profiles are
+   registered.
 3. The target profile's background script receives `openurl`, opens the tab locally, and sends
-   `removetab` back so the source profile closes the original tab. All of this is coordinated in
+   `removetab` back so the source profile closes the original tab — which is also how the router
+   page's own tab disappears once a hand-over succeeds. All of this is coordinated in
    `chromeextension/src/Background/tabUpdateHandler.ts`, which also keeps a status log
    (`ITabStatus[]`) shown in the Log tab.
 4. Group codes are minted server-side (`api/src/functions/groupcode`) from the Static Web Apps client
@@ -105,26 +110,40 @@ the background entrypoint in Node to read its config, so no `chrome.*` call may 
   resolved profile display name).
 - `chromestorage.ts` — a `listeners` map most handlers use to react to `chrome.storage.local`
   changes instead of a shared store.
+- `interstitialSettingsHandler.ts` — owns the router page settings under storage key `settings`
+  (`{ mode: 'off' | 'matched' | 'always', countdownSeconds }`). Machine-local by design: unlike
+  rules and userprofiles they are never synced over SignalR.
 
 ### Messaging layers
 
 Two distinct channels, in `chromeextension/src/Messaging/`:
 - `ChromeMessaging.ts` — background ↔ content script, via `chrome.runtime.sendMessage`.
-- `BackgroundChromeMessagingPort.ts` / `ScriptChromeMessagingPort.ts` — background ↔ options
-  page, via a long-lived `chrome.runtime.connect` port on channel `'popup'` (historical name);
-  singletons per channel name. The UI side's stores/handlers live in
-  `entrypoints/options/lib/backgroundStores.ts`.
+- `BackgroundChromeMessagingPort.ts` / `ScriptChromeMessagingPort.ts` — background ↔ extension
+  pages (options page and router page), via a long-lived `chrome.runtime.connect` port on channel
+  `'popup'` (historical name); singletons per channel name. Background→page messages are broadcast
+  to every connected port. The UI side's stores/handlers live in `src/UI/backgroundStores.ts`.
 
 Shared message/data contracts live in `chromeextension/src/Shared/*Models.ts` (`IRule`,
 `IUserProfileStatus`, `ITabStatus`, SignalR message types) — check these first when changing any
 cross-context message shape.
 
-### Options page UI (`entrypoints/options/`)
+### Extension UI (`entrypoints/options/`, `entrypoints/router/`, `src/UI/`)
 
-React 19 function components; state comes from small external stores (`lib/stores.ts`) fed by
-the port messaging layer. Tabs: Welcome, Groupcode, Connection, User profiles, Rules, Log.
-Modals are hand-rolled (`components/Modal.tsx`). Styling is dependency-free CSS in
-`main.css` — no Bootstrap/UI kit.
+React 19 function components; state comes from small external stores (`src/UI/stores.ts`) fed by
+the port messaging layer (`src/UI/backgroundStores.ts`). Everything both pages share — those two
+stores modules, `components/Modal.tsx`, `components/RuleDialog.tsx` and the dependency-free
+`main.css` (no Bootstrap/UI kit) — lives in `src/UI/`; only page-specific code stays under
+`entrypoints/`.
+
+Options page tabs: Welcome, Groupcode, Connection, User profiles, Rules, Log, Settings.
+
+The router page (`entrypoints/router/`, built as `router.html`) is the interstitial a routed tab
+lands on. It reads the original URL from the `url` query parameter, re-runs `findMatchingRule()`
+locally, and either counts down before routing or waits for a manual choice. It sends two messages
+of its own over the `'popup'` port: `routetab` (hand the URL to another profile) and `opentabhere`
+(load the original URL in this tab, logged as `Cancelled`). Adding or editing a rule from the page
+goes through the same `addRule()` / `changeRule()` commands the Rules tab uses, so a new match
+re-arms the countdown.
 
 ### `api/`
 

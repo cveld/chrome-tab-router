@@ -4,7 +4,9 @@ export enum TabStatusEnum {
     Routing = 'Routing',
     Removed = 'Removed',
     Unmatched = 'Unmatched',
-    Self = 'Self'
+    Self = 'Self',
+    Prompting = 'Prompting',
+    Cancelled = 'Cancelled'
 }
 export interface ITabStatus {
     tabId: number,
