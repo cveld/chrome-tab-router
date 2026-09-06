@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import type { IUserProfileStatus } from '../../../src/Shared/UserprofileModels';
+import type { IUserProfileStatus } from '../../Shared/UserprofileModels';
 import { Modal } from './Modal';
 
 interface UserProfileDialogProps {
   profile: IUserProfileStatus;
   isCurrent: boolean;
   onChange(updated: IUserProfileStatus): void;
-  onDelete(): void;
+  onDelete?(): void;
   onClose(): void;
 }
 
@@ -45,7 +45,7 @@ export function UserProfileDialog({
           <button type="submit" className="btn primary">
             Change
           </button>
-          {!isCurrent && (
+          {!isCurrent && onDelete && (
             <button type="button" className="btn danger" onClick={onDelete}>
               Delete
             </button>

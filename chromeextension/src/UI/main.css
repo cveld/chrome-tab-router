@@ -129,6 +129,10 @@ h2 {
   background: #f1f3f5;
 }
 
+.icon-button.rename:hover {
+  color: var(--primary);
+}
+
 /* Tables ----------------------------------------------------------------- */
 
 .table {
@@ -265,6 +269,86 @@ input:disabled {
 
 .modal-body {
   padding: 1.1rem;
+}
+
+/* Profile picker (custom dropdown with a rename affordance per row) ------ */
+
+.profile-picker {
+  position: relative;
+  width: 100%;
+}
+
+.profile-picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile-picker-trigger:hover {
+  background: #f8fafc;
+}
+
+.profile-picker-caret {
+  margin-left: 0.5rem;
+  color: var(--text-muted);
+}
+
+.profile-picker-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 24px rgb(15 23 42 / 15%);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.profile-picker-option {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.profile-picker-option-label {
+  flex: 1;
+  appearance: none;
+  border: none;
+  background: none;
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.profile-picker-option-label:hover {
+  background: #eef1f4;
+}
+
+.profile-picker-option[aria-selected='true'] .profile-picker-option-label {
+  font-weight: 600;
+}
+
+.profile-picker-empty {
+  padding: 0.4rem 0.5rem;
+  color: var(--text-muted);
 }
 
 /* Status badges ---------------------------------------------------------- */
