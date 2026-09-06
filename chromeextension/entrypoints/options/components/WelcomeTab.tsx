@@ -26,6 +26,29 @@ export function WelcomeTab() {
       <button type="button" className="btn primary" onClick={openGroupcodeApp}>
         Generate
       </button>
+      <h2>Privacy policy</h2>
+      <p>
+        Chrome Tab Router only processes what it needs to route tabs between your Chrome
+        profiles: the URLs of tabs it evaluates, the routing rules and profile names you
+        configure, and your groupcode. This data is relayed through an Azure-hosted backend
+        (SignalR + Azure Functions) purely to pass messages between your own profiles in real
+        time — the backend does not store your browsing history, and no data is shared with
+        third parties.
+      </p>
+      <p>
+        The groupcode is a shared secret: only extension instances configured with the same
+        groupcode can exchange messages, and only your own profiles are meant to share one.
+      </p>
+      <p>
+        No analytics, tracking, or advertising identifiers are collected. All configuration
+        (rules, profile names, groupcode) is stored locally via <code>chrome.storage.local</code>{' '}
+        and synced only between your own connected profiles.
+      </p>
+      <p>
+        <a href={`${configUrl}/privacy.html`} target="_blank" rel="noreferrer">
+          Full privacy policy
+        </a>
+      </p>
     </section>
   );
 }
