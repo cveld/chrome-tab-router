@@ -65,6 +65,7 @@ jobs:
         with:
           name: chromeextension-${{ env.EXTENSION_TAG }}
           path: chromeextension/.output/*.zip
+          include-hidden-files: true
 
       # Keyless auth via Workload Identity Federation - no stored Google
       # credential at all. Setup: GCP project "chrome-tab-router", pool
