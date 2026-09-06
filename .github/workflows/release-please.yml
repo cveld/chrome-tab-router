@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      extension_tag:
+        description: >-
+          Extension tag to (re)publish (e.g. extension-v0.6.0), skipping
+          release-please and running publish-extension directly against it.
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -11,6 +19,7 @@ permissions:
 
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       extension_released: ${{ steps.release.outputs['chromeextension--release_created'] }}
@@ -24,15 +33,20 @@ jobs:
 
   publish-extension:
     needs: release-please
-    if: needs.release-please.outputs.extension_released == 'true'
+    if: |
+      always() &&
+      needs.release-please.result != 'failure' &&
+      (needs.release-please.outputs.extension_released == 'true' || inputs.extension_tag != '')
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
+    env:
+      EXTENSION_TAG: ${{ inputs.extension_tag || needs.release-please.outputs.extension_tag }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.release-please.outputs.extension_tag }}
+          ref: ${{ env.EXTENSION_TAG }}
 
       - uses: actions/setup-node@v4
         with:
@@ -45,6 +59,12 @@ jobs:
       - name: Build extension zip
         run: npm run zip
         working-directory: chromeextension
+
+      - name: Upload extension zip as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chromeextension-${{ env.EXTENSION_TAG }}
+          path: chromeextension/.output/*.zip
 
       # Keyless auth via Workload Identity Federation - no stored Google
       # credential at all. Setup: GCP project "chrome-tab-router", pool
