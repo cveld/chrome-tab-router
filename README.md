@@ -9,7 +9,8 @@ The solution comprises two parts:
   - Functions back-end: api
 * Chrome extension (Manifest V3, built with WXT):
   - Background and content script: chromeextension
-  - Management UI (rules, user profiles, log): React options page in chromeextension/entrypoints/options
+  - Management UI (rules, user profiles, log, settings): React options page in chromeextension/entrypoints/options
+  - Router page: interstitial in chromeextension/entrypoints/router that shows where a link is headed, counts down before routing, and lets you pick another profile or edit the rule
 * Azure SignalR Service
   - Connected with the background script in order to communicate messages across Chrome user profiles
 

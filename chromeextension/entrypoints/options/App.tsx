@@ -3,6 +3,7 @@ import { ConnectionTab } from './components/ConnectionTab';
 import { GroupcodeTab } from './components/GroupcodeTab';
 import { LogTab } from './components/LogTab';
 import { RulesTab } from './components/RulesTab';
+import { SettingsTab } from './components/SettingsTab';
 import { UserProfilesTab } from './components/UserProfilesTab';
 import { WelcomeTab } from './components/WelcomeTab';
 
@@ -13,6 +14,7 @@ const TABS = [
   { key: 'userprofiles', label: 'User profiles', render: () => <UserProfilesTab /> },
   { key: 'rules', label: 'Rules', render: () => <RulesTab /> },
   { key: 'log', label: 'Log', render: () => <LogTab /> },
+  { key: 'settings', label: 'Settings', render: () => <SettingsTab /> },
 ] as const;
 
 type TabKey = (typeof TABS)[number]['key'];

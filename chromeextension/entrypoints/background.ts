@@ -7,6 +7,7 @@ import { registerSignalrMessages } from '../src/Background/signalrmessages';
 import { registerUserprofilesHandler } from '../src/Background/userprofilesHandler';
 import { registerRulesHandler } from '../src/Background/rulesHandler';
 import { registerChromeProfileNameHandler } from '../src/Background/chromeprofileNameHandler';
+import { registerInterstitialSettingsHandler } from '../src/Background/interstitialSettingsHandler';
 import { registerTabUpdateHandler } from '../src/Background/tabUpdateHandler';
 import { registerBadgeStatusHandler } from '../src/Background/badgeStatusHandler';
 import { registerWatchdogAlarm } from '../src/Background/watchdogAlarm';
@@ -30,6 +31,7 @@ export default defineBackground(() => {
   registerUserprofilesHandler();
   registerRulesHandler();
   registerChromeProfileNameHandler();
+  registerInterstitialSettingsHandler();
   registerTabUpdateHandler();
   registerBadgeStatusHandler();
   registerWatchdogAlarm();

@@ -3,11 +3,17 @@
 // Angular services in popup/src/app/services/*: one handler per message type,
 // an initial "get*" request on load, and command functions with the same
 // semantics (local optimistic update + notify background).
-import { ScriptChromeMessagingWithPort } from '../../../src/Messaging/ScriptChromeMessagingPort';
-import type { IRule } from '../../../src/Shared/RuleModels';
-import type { IUserProfileStatus } from '../../../src/Shared/UserprofileModels';
-import type { ITabStatus } from '../../../src/Shared/TabStatusModels';
-import { ConnectionStatusEnum, type IConnectionStatus } from '../../../src/Shared/signalrModels';
+import { ScriptChromeMessagingWithPort } from '../Messaging/ScriptChromeMessagingPort';
+import type { IRule } from '../Shared/RuleModels';
+import type { IUserProfileStatus } from '../Shared/UserprofileModels';
+import type { ITabStatus } from '../Shared/TabStatusModels';
+import { ConnectionStatusEnum, type IConnectionStatus } from '../Shared/signalrModels';
+import type { IRouteTabRequest } from '../Shared/MessageModels';
+import {
+  defaultInterstitialSettings,
+  normalizeInterstitialSettings,
+  type IInterstitialSettings,
+} from '../Shared/SettingsModels';
 import { createStore } from './stores';
 
 const messaging = ScriptChromeMessagingWithPort.getInstance('popup');
@@ -20,6 +26,7 @@ export const connectionStatusStore = createStore<IConnectionStatus>({
 export const groupcodeStore = createStore<string>('');
 export const chromeInstanceIdStore = createStore<string>('');
 export const tabLogStore = createStore<ITabStatus[]>([]);
+export const settingsStore = createStore<IInterstitialSettings>(defaultInterstitialSettings);
 
 messaging.setHandler<IRule[]>('rules', message => {
   rulesStore.set(message.payload ?? []);
@@ -54,6 +61,11 @@ messaging.setHandler<ITabStatus[]>('log', message => {
   tabLogStore.set(message.payload ?? []);
 });
 messaging.sendMessage({ type: 'getlog' });
+
+messaging.setHandler<IInterstitialSettings>('settings', message => {
+  settingsStore.set(normalizeInterstitialSettings(message.payload));
+});
+messaging.sendMessage({ type: 'getsettings' });
 
 // --- Commands (UI -> background) -------------------------------------------
 
@@ -122,4 +134,20 @@ export function reconnectSignalr(): void {
 
 export function submitGroupcode(encoded: string): void {
   messaging.sendMessage({ type: 'groupcode', payload: { encoded } });
+}
+
+export function saveSettings(settings: IInterstitialSettings): void {
+  const normalized = normalizeInterstitialSettings(settings);
+  settingsStore.set(normalized);
+  messaging.sendMessage({ type: 'settings', payload: normalized });
+}
+
+/** Hand the url to another profile; the background closes this tab afterwards. */
+export function routeTab(request: IRouteTabRequest): void {
+  messaging.sendMessage({ type: 'routetab', payload: request });
+}
+
+/** Abandon routing and load the original url in this tab. */
+export function openTabHere(request: IRouteTabRequest): void {
+  messaging.sendMessage({ type: 'opentabhere', payload: request });
 }
