@@ -16,6 +16,12 @@ export function WelcomeTab() {
         The extension connects with an external webservice that provides the communication between
         the various user profiles you have running.
       </p>
+      <p>
+        Source code:{' '}
+        <a href="https://github.com/cveld/chrome-tab-router" target="_blank" rel="noreferrer">
+          github.com/cveld/chrome-tab-router
+        </a>
+      </p>
       <h2>Groupcode</h2>
       <p>
         In order to connect user profiles together a <b>groupcode</b> is required.
