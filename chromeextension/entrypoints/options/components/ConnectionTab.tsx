@@ -1,5 +1,5 @@
-import { connectionStatusStore, reconnectSignalr } from '../lib/backgroundStores';
-import { useStore } from '../lib/stores';
+import { connectionStatusStore, reconnectSignalr } from '../../../src/UI/backgroundStores';
+import { useStore } from '../../../src/UI/stores';
 
 export function ConnectionTab() {
   const connectionStatus = useStore(connectionStatusStore);

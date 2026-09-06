@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { groupcodeStore, submitGroupcode } from '../lib/backgroundStores';
-import { useStore } from '../lib/stores';
+import { groupcodeStore, submitGroupcode } from '../../../src/UI/backgroundStores';
+import { useStore } from '../../../src/UI/stores';
 import { openGroupcodeApp } from './WelcomeTab';
 
 export function GroupcodeTab() {

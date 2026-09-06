@@ -5,10 +5,10 @@ import {
   deleteUserProfile,
   updateUserProfile,
   userProfilesStore,
-} from '../lib/backgroundStores';
+} from '../../../src/UI/backgroundStores';
 import { formatDateTime } from '../lib/format';
-import { useStore } from '../lib/stores';
-import { UserProfileDialog } from './UserProfileDialog';
+import { useStore } from '../../../src/UI/stores';
+import { UserProfileDialog } from '../../../src/UI/components/UserProfileDialog';
 
 export function UserProfilesTab() {
   const profiles = useStore(userProfilesStore);

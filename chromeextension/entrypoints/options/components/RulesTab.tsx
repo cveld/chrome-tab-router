@@ -7,9 +7,9 @@ import {
   deleteRule,
   rulesStore,
   userProfilesStore,
-} from '../lib/backgroundStores';
-import { useStore } from '../lib/stores';
-import { RuleDialog } from './RuleDialog';
+} from '../../../src/UI/backgroundStores';
+import { useStore } from '../../../src/UI/stores';
+import { RuleDialog } from '../../../src/UI/components/RuleDialog';
 
 type EditingState = { mode: 'add' } | { mode: 'change'; original: IRule };
 
