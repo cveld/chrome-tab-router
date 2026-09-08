@@ -14,10 +14,10 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
+    "@azure/functions": "^4.7.0",
     "crypto-js": "^4.2.0"
   },
   "devDependencies": {
-    "@azure/functions": "^4.7.0",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^22.10.0",
     "typescript": "^5.9.2"
