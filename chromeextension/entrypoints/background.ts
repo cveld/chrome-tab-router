@@ -24,6 +24,13 @@ import { registerLogLevelSync, registerLogPersistence } from '../src/Shared/logS
 // is only called from here, synchronously, so listeners are attached before
 // Chrome delivers whatever event woke this worker up.
 export default defineBackground(() => {
+  // Registered first so the toolbar icon keeps opening the options page even
+  // if a later register*() call throws; that page is also where a broken or
+  // not-yet-established connection gets explained.
+  chrome.action.onClicked.addListener(() => {
+    chrome.runtime.openOptionsPage();
+  });
+
   registerLogLevelSync();
   registerLogPersistence();
   logBuildInfo('service worker');
@@ -55,9 +62,5 @@ export default defineBackground(() => {
     port.onMessage.addListener(function (msg, port) {
       // May be empty.
     });
-  });
-
-  chrome.action.onClicked.addListener(() => {
-    chrome.runtime.openOptionsPage();
   });
 });
