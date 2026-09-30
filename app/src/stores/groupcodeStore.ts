@@ -43,9 +43,26 @@ export function setGroupcode(groupcode: IGroupCode): void {
  * Error whose message the UI can show directly.
  */
 export async function generateGroupcode(): Promise<void> {
-  const res = await fetch('/api/groupcode', { credentials: 'include' });
+  // Absolute URL so error messages show exactly which endpoint was called.
+  const endpoint = new URL('/api/groupcode', window.location.origin).href;
+  let res: Response;
+  try {
+    res = await fetch(endpoint, { credentials: 'include' });
+  } catch {
+    throw new Error(`The groupcode service at ${endpoint} could not be reached.`);
+  }
+  if (res.status === 401 || res.status === 403) {
+    throw new Error('You need to log in before you can generate a groupcode.');
+  }
+  if (res.status === 502 || res.status === 503 || res.status === 504) {
+    throw new Error(
+      `The groupcode service at ${endpoint} is unreachable right now (${res.status}). Please try again later.`
+    );
+  }
   if (!res.ok) {
-    throw new Error(`Generating the group code failed: ${res.status} ${res.statusText}`);
+    throw new Error(
+      `Generating the group code failed: ${endpoint} responded ${res.status} ${res.statusText}`
+    );
   }
   const data = (await res.json()) as IGroupCode;
   if (!data.encoded) {

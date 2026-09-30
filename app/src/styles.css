@@ -120,8 +120,27 @@ h2 {
   font-size: 0.85em;
 }
 
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .error-text {
   color: var(--danger);
+}
+
+.error-block {
+  color: var(--danger);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius);
+  padding: 0.6rem 0.75rem;
+  margin: 1rem 0;
+  font-weight: 600;
+}
+
+.hint-text {
+  color: var(--text-muted);
 }
 
 textarea {

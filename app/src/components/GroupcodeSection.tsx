@@ -4,20 +4,30 @@ import {
   groupcodeStore,
   setGroupcode,
 } from '../stores/groupcodeStore';
+import { authMeStore, isLoggedIn, refreshAuthMe } from '../stores/authStore';
 import { useStore } from '../lib/stores';
 
 /** Generate or reuse the shared group code and hand it to the extension. */
 export function GroupcodeSection() {
   const groupcode = useStore(groupcodeStore);
+  const authMe = useStore(authMeStore);
   const [enteredGroupcode, setEnteredGroupcode] = useState('');
   const [groupcodeError, setGroupcodeError] = useState('');
+  const [generating, setGenerating] = useState(false);
+
+  const loggedIn = isLoggedIn(authMe);
 
   const generateClicked = async () => {
     setGroupcodeError('');
+    setGenerating(true);
     try {
       await generateGroupcode();
     } catch (e: unknown) {
       setGroupcodeError(e instanceof Error ? e.message : String(e));
+      // The session may have expired; resync the auth card and login gate.
+      refreshAuthMe();
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -59,12 +69,23 @@ export function GroupcodeSection() {
       </div>
 
       <h3>Generate</h3>
-      <p>
-        <button type="button" className="btn primary" onClick={() => void generateClicked()}>
-          Generate
+      <p className="row">
+        <button
+          type="button"
+          className="btn primary"
+          disabled={!loggedIn || generating}
+          onClick={() => void generateClicked()}
+        >
+          {generating ? 'Generating…' : 'Generate'}
         </button>
+        {!loggedIn && (
+          <span className="hint-text">
+            <a href="/.auth/login/aad?post_login_redirect_uri=/">Log in</a> first before you
+            can generate a groupcode.
+          </span>
+        )}
       </p>
-      {groupcodeError && <p className="error-text">{groupcodeError}</p>}
+      {groupcodeError && loggedIn && <p className="error-text">{groupcodeError}</p>}
 
       <h3>Reuse existing code</h3>
       <textarea

@@ -26,9 +26,9 @@ export function AuthSection() {
           Your easy auth information:
           <pre className="json-block">{JSON.stringify(authMe.response, null, 2)}</pre>
           {authMe.status === 'error' && (
-            <p>
-              <b>There is an error while fetching your auth token. Check your connection.</b>
-            </p>
+            <div className="error-block" role="alert">
+              There is an error while fetching your auth token. Check your connection.
+            </div>
           )}
           {!loggedIn && <p><b>Please log in</b></p>}
           {loggedIn && <p><b>Logged in</b></p>}
