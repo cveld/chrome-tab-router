@@ -182,22 +182,40 @@ The backend/API base URL is selected per mode via env files (`WXT_API_BASE_URL`,
 
 Commands:
 
-- Dev build with HMR, against localhost (`.env`):
+- Start the development server with HMR against the local app dev server (`localhost:4200`):
 
   ```bash
   npm run dev
   ```
 
-- Dev build against the deployed Azure backend (`.env.azure`):
+- Start the development server against a deployed Azure backend (`.env.azure`):
 
   ```bash
   npm run dev:azure
   ```
 
-- Dev build against a locally running Functions host (`.env.localfunc`):
+- Start the development server against the local Function App (`localhost:7071`):
 
   ```bash
   npm run dev:localfunc
+  ```
+
+- Build an unpacked development extension against the local app dev server:
+
+  ```bash
+  npm run build:dev
+  ```
+
+- Build an unpacked extension against the local Function App:
+
+  ```bash
+  npm run build:localfunc
+  ```
+
+- Build an unpacked extension against a deployed Azure backend:
+
+  ```bash
+  npm run build:azure
   ```
 
 - Production build:
@@ -240,10 +258,31 @@ Commands:
 
 Build output note:
 
-- Production builds (`npm run build` / `npm run zip`) are written to `.output/chrome-mv3`.
-- Dev builds (`npm run dev`, `dev:azure`, `dev:localfunc`) are written to
-  `.output/chrome-mv3-dev` — load *that* folder as the unpacked extension when developing, not
-  `.output/chrome-mv3`.
+| Command | Folder (`.output/`) | Backend |
+| --- | --- | --- |
+| `npm run build` / `npm run zip` | `chrome-mv3` (zip next to it) | production — Chrome Web Store |
+| `npm run build:dev` | `chrome-mv3-dev` | `localhost:4200` |
+| `npm run build:localfunc` | `chrome-mv3-localfunc` | `localhost:7071` |
+| `npm run build:azure` | `chrome-mv3-azure` | deployed backend (production, or `.env.azure.local`) |
+| `npm run dev` | `chrome-mv3-dev-serve` | `localhost:4200` |
+| `npm run dev:localfunc` | `chrome-mv3-localfunc-serve` | `localhost:7071` |
+| `npm run dev:azure` | `chrome-mv3-azure-serve` | deployed backend |
+
+- Folders without `-serve` are self-contained builds. Load them into your own Chrome
+  profiles via `chrome://extensions` > **Load unpacked**, then rebuild and click reload
+  after changes. Use them to test cross-profile routing, group codes and the badge in real
+  profiles.
+- `-serve` folders work only while the dev server runs and load code from
+  `http://localhost:3001`. The dev server opens them in a separate temporary-profile
+  Chrome; never load them by hand. (WXT names folders after the mode only; a
+  `config:resolved` hook in `wxt.config.ts` adds the `-serve` suffix.)
+- Every folder except `chrome-mv3` also contains the dev-only pages: right-click the
+  extension icon > **Development**.
+
+`.env.azure` defaults to production. To test a pre-prod backend or a temporary PR staging
+environment, set `WXT_API_BASE_URL` and `WXT_CONFIG_URL` in `.env.azure.local` (gitignored,
+overrides `.env.azure`). Do not commit staging URLs; PR staging environments are removed when
+their PR closes.
 
 ## Loading the extension in Chrome
 
@@ -252,9 +291,10 @@ After starting a dev or production build:
 1. Open `chrome://extensions`
 2. Enable **Developer mode**
 3. Click **Load unpacked**
-4. Select `chromeextension/.output/chrome-mv3` for a production build, or
-   `chromeextension/.output/chrome-mv3-dev` for a dev build (`npm run dev` / `dev:azure` /
-   `dev:localfunc`)
+4. Select `chromeextension/.output/chrome-mv3` for the production build, or the matching
+   non-serve build folder such as `.output/chrome-mv3-dev`, `.output/chrome-mv3-localfunc`
+   or `.output/chrome-mv3-azure`. Never select a folder ending in `-serve`; those only work
+   while the dev server runs and are loaded automatically into its temporary Chrome profile.
 
 During development:
 

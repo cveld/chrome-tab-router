@@ -11,6 +11,7 @@
     "build": "wxt build",
     "build:azure": "wxt build -m azure",
     "build:localfunc": "wxt build -m localfunc",
+    "build:dev": "wxt build -m development",
     "zip": "wxt zip",
     "postinstall": "wxt prepare",
     "test": "vitest run",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.2.6",
+    "@types/node": "^22.20.4",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@wxt-dev/module-react": "^1.2.2",

@@ -22,8 +22,9 @@ npm run dev
 ```
 
 The dev server runs on `http://chrome-tab-router.localhost:3001` (proxied through
-Caddy; see the `Caddyfile`). Load `.output/chrome-mv3-dev` as an unpacked
-extension in Chrome.
+Caddy; see the `Caddyfile`). It writes `.output/chrome-mv3-dev-serve` and opens it in its
+own Chrome instance with a temporary profile. To load the extension into your own Chrome
+profiles, run `npm run build:dev` and load `.output/chrome-mv3-dev` as an unpacked extension.
 
 ## Build
 
