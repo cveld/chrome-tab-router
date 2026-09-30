@@ -2,13 +2,14 @@ import { registerChromeMessaging } from '../src/Messaging/ChromeMessaging';
 import { registerDocumentEventing, dispatchEventToPage } from '../src/Messaging/DocumentEventing';
 import { registerContentChromeInstanceIdHandler } from '../src/Content/ContentChromeInstanceIdHandler';
 import { registerContentGroupcodeHandler } from '../src/Content/ContentGroupcodeHandler';
+import { contentScriptMatches } from '../src/Shared/contentScriptMatches';
 
 export default defineContentScript({
-  // No port here: WXT's dev-mode content-script reload logic validates match
-  // patterns more strictly than Chrome's own manifest parser and rejects a
-  // port in the host. Dropping it also means this still matches if the
-  // Angular dev server ends up on a different port than 4200.
-  matches: ['http://localhost/*', 'https://*.azurestaticapps.net/*'],
+  // Only the web app's own origin for this build (see contentScriptMatches).
+  matches: contentScriptMatches(
+    import.meta.env.WXT_CONFIG_URL,
+    import.meta.env.WXT_CONTENT_SCRIPT_EXTRA_URLS,
+  ),
   main() {
     registerChromeMessaging();
     registerDocumentEventing();
