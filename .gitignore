@@ -360,4 +360,7 @@ __tablestorage__/
 .agents/skills/
 skills-lock.json
 .claude/scheduled_tasks.lock
+# Personal Claude Code settings and Claude desktop preview-server configs
+.claude/settings.local.json
+.claude/launch.json
 CLAUDE.local.md
