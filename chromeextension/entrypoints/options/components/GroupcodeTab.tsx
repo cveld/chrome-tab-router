@@ -16,8 +16,16 @@ export function GroupcodeTab() {
     setEntered('');
   };
 
+  const [copyState, setCopyState] = useState<string>();
+
   const copyClicked = async () => {
-    await navigator.clipboard.writeText(groupcode);
+    try {
+      await navigator.clipboard.writeText(groupcode);
+      setCopyState('Copied to clipboard');
+    } catch (error) {
+      setCopyState(`Copy failed: ${String(error)}`);
+    }
+    setTimeout(() => setCopyState(undefined), 2000);
   };
 
   return (
@@ -30,6 +38,7 @@ export function GroupcodeTab() {
             <button type="button" className="btn secondary" onClick={() => void copyClicked()}>
               Copy
             </button>
+            {copyState && <span role="status">{copyState}</span>}
           </>
         ) : (
           <i>No groupcode assigned yet</i>
