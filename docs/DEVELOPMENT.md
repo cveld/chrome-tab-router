@@ -240,8 +240,10 @@ Commands:
 
 Build output note:
 
-- Builds are written to `.output/chrome-mv3` (production) or `.output/chrome-mv3` during dev;
-  load that folder as an unpacked extension
+- Production builds (`npm run build` / `npm run zip`) are written to `.output/chrome-mv3`.
+- Dev builds (`npm run dev`, `dev:azure`, `dev:localfunc`) are written to
+  `.output/chrome-mv3-dev` — load *that* folder as the unpacked extension when developing, not
+  `.output/chrome-mv3`.
 
 ## Loading the extension in Chrome
 
@@ -250,13 +252,44 @@ After starting a dev or production build:
 1. Open `chrome://extensions`
 2. Enable **Developer mode**
 3. Click **Load unpacked**
-4. Select `chromeextension/.output/chrome-mv3`
+4. Select `chromeextension/.output/chrome-mv3` for a production build, or
+   `chromeextension/.output/chrome-mv3-dev` for a dev build (`npm run dev` / `dev:azure` /
+   `dev:localfunc`)
 
 During development:
 
 - Reload the extension manually in `chrome://extensions` after background/content script
   changes
 - For options page changes made while `wxt` is running, the page picks up updates via HMR
+
+## AI agent skills (optional)
+
+Coding agents (Claude Code, and others that read `.agents/skills/`) work better here with a few
+skills installed. They are third-party content and are not committed: `.agents/skills/`,
+`.claude/skills/` and `skills-lock.json` are git-ignored. Install them per clone with the
+[`skills`](https://www.npmjs.com/package/skills) CLI from the repo root:
+
+```sh
+npx skills add GoogleChrome/modern-web-guidance --skill chrome-extensions
+npx skills add GoogleChrome/modern-web-guidance --skill modern-web-guidance
+npx skills add kiluazen/kstack --skill chrome-relay
+```
+
+- `chrome-extensions` — Google's Manifest V3 and Chrome Web Store publishing guidance
+  (service workers, message passing, content scripts, permissions, store listing and review).
+- `modern-web-guidance` — searchable modern HTML/CSS/JS best practices, useful for the options
+  and router pages and for `app/`.
+- `chrome-relay` — lets an agent drive your real Chrome, including several Chrome profiles side
+  by side, which is how cross-profile routing is tested end to end. The skill alone does
+  nothing; it also needs the CLI and native host (`npm install -g chrome-relay@latest`, then
+  `chrome-relay install`) plus the Chrome Relay extension in every profile you want to reach.
+  Label each profile with `chrome-relay --profile <idprefix> profile label <name>`. Note that
+  Chrome blocks it from `chrome://` pages and from other extensions' pages, so the options page,
+  router page and service worker of this extension still have to be inspected by hand via
+  `chrome://extensions` (Developer mode → Inspect views).
+
+`npx skills update` refreshes installed skills. `.claude/skills/*` are symlinks into
+`.agents/skills/` with absolute paths, which is another reason not to commit them.
 
 ## Known rough edges
 
@@ -270,3 +303,21 @@ During development:
   is not available when only running the local Functions host. The full auth flow works once
   deployed to Azure Static Web Apps, or via the Azure Static Web Apps CLI (`swa`), which is not
   part of the current repo tooling.
+
+- **The content script can silently fail to register in dev mode, even with a correct manifest
+  and "On all sites" access.** `.output/chrome-mv3-dev/manifest.json` has no `content_scripts`
+  entry at all — WXT registers the content script dynamically at runtime via
+  `chrome.scripting.registerContentScripts()`, triggered by a `wxt:reload-content-script` event
+  pushed over a WebSocket from the running dev server (`ws://localhost:3001`) to the background
+  service worker. If the extension's background script wasn't connected to a live dev server at
+  the moment that push happened (e.g. the unpacked extension was loaded/reloaded before `wxt dev`
+  had a chance to push, or the connection was otherwise missed), no content script ends up
+  registered — with no error, no warning icon, and normal `chrome://extensions` "Site access:
+  On all sites". Symptom: a page that depends on the content script (e.g. `app/` at
+  `localhost:4200` reporting "Chrome tab router extension not found" via
+  `contentScriptReadyStore`) never gets a response to its ping/pong handshake
+  (`app/src/messaging/documentEventing.ts` ↔ `chromeextension/src/Messaging/DocumentEventing.ts`),
+  while background-driven features (routing, SignalR) work fine since those don't depend on
+  content-script registration. Fix: with the dev server running, click the reload icon on the
+  extension's card in `chrome://extensions` — this reconnects the background script to the dev
+  server and re-triggers the registration push — then reload the affected tab.

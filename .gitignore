@@ -355,7 +355,9 @@ __blobstorage__/
 __queuestorage__/
 __tablestorage__/
 
-# Local skills
-.claude/skills/chrome-relay
-.agents/skills/chrome-relay
+# Local AI agent skills (installed via `npx skills add`, see docs/DEVELOPMENT.md)
+.claude/skills/
+.agents/skills/
 skills-lock.json
+.claude/scheduled_tasks.lock
+CLAUDE.local.md
