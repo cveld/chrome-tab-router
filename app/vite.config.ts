@@ -1,8 +1,9 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { fakeClientPrincipalHeader, fakeEasyAuth, hasFakeSession } from './fakeEasyAuth';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), fakeEasyAuth()],
   // The Azure Static Web Apps workflow pins output_location to "dist/app"
   // (relative to app_location: "app"), so keep that path instead of Vite's
   // default "dist".
@@ -19,12 +20,15 @@ export default defineConfig({
         target: 'http://localhost:7071',
         changeOrigin: false,
         secure: false,
-        headers: {
-          // Same fake EasyAuth principal the old angular proxy.conf.json
-          // injected, so /api/groupcode works against a locally running
-          // Functions host without Static Web Apps authentication.
-          'x-ms-client-principal':
-            'eyJ1c2VySWQiOiJsb2NhbC1kZXYiLCJ1c2VyUm9sZXMiOlsiYW5vbnltb3VzIiwiYXV0aGVudGljYXRlZCJdfQ==',
+        // Forward the fake EasyAuth principal only while "logged in" through
+        // fakeEasyAuth, so /api/groupcode answers 401 when logged out just
+        // like it does behind Static Web Apps.
+        configure: proxy => {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            if (hasFakeSession(req.headers.cookie)) {
+              proxyReq.setHeader('x-ms-client-principal', fakeClientPrincipalHeader);
+            }
+          });
         },
       },
     },
