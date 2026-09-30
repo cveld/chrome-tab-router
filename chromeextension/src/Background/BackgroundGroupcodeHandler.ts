@@ -3,6 +3,9 @@ import { messageHandlers, setHandler } from '../Messaging/ChromeMessaging';
 import type { IMessageType } from '../Shared/MessageModels';
 import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';
 import { listeners } from './chromestorage';
+import { createLogger } from '../Shared/logger';
+
+const logger = createLogger('groupcode');
 
 interface IGroupcode {
   clientprincipalname?: {
@@ -38,7 +41,7 @@ export function registerBackgroundGroupcodeHandler() {
     const groupcodevalue: IGroupcode = JSON.parse(groupcodestring);
     groupcodevalue.encoded = newValue.encoded;
     groupcode.next(groupcodevalue);
-    console.log(`new groupcode value: ${groupcodevalue}`);
+    logger.info('group code changed');
   });
 
   setHandler('groupcode', setGroupcodeHandler);

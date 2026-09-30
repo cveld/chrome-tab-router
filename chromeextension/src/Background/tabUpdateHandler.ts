@@ -8,12 +8,20 @@ import type { IRouteTabRequest } from '../Shared/MessageModels';
 import { shouldPromptInterstitial } from '../Shared/SettingsModels';
 import { interstitialSettings } from './interstitialSettingsHandler';
 import { userprofiles } from './userprofilesHandler';
+import { createLogger } from '../Shared/logger';
+import { urlOrigin } from '../Shared/DiagnosticsModels';
+
+const logger = createLogger('tabs');
 
 // List that captures the handling state of a created tab
 const tabs = new Set<number>();
 const navigatedTabs = new Map<number, chrome.webNavigation.WebNavigationBaseCallbackDetails>();
 
 let log: Array<ITabStatus> = [];
+
+export function getTabLog(): ITabStatus[] {
+  return log;
+}
 
 // getInstance() is memoized (see BackgroundChromeMessagingPort.ts), so
 // calling it here just fetches the singleton created by registerTabUpdateHandler()
@@ -98,6 +106,7 @@ function updateLoglineToRemovedState(tabId: number) {
 }
 
 function addLogline(logline: ITabStatus) {
+  logger.debug(`tab ${logline.tabId}: ${logline.status}`, urlOrigin(logline.url), logline.targetUserprofile ?? '');
   log.push(logline);
   chrome.storage.local.set({
     'log': log
@@ -173,6 +182,7 @@ export function registerTabUpdateHandler() {
 
   addHandler<{ targetUserprofile: string, tab: number }>('removetab', (message) => {
     if (message.payload!.targetUserprofile === chromeInstanceId.value) {
+      logger.debug(`tab ${message.payload!.tab}: removed after hand-over`);
       updateLoglineToRemovedState(message.payload!.tab);
       chrome.tabs.remove(message.payload!.tab);
     }

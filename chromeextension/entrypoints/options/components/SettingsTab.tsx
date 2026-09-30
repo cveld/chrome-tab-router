@@ -1,5 +1,9 @@
+import { useEffect, useState } from 'react';
 import type { InterstitialMode } from '../../../src/Shared/SettingsModels';
+import { getLogLevel, normalizeLogLevel, type LogLevel } from '../../../src/Shared/logger';
+import { LOG_LEVEL_STORAGE_KEY, saveLogLevel } from '../../../src/Shared/logStorage';
 import { saveSettings, settingsStore } from '../../../src/UI/backgroundStores';
+import { copyDiagnostics } from '../../../src/UI/diagnostics';
 import { useStore } from '../../../src/UI/stores';
 
 const MODES: Array<{ value: InterstitialMode; label: string; hint: string }> = [
@@ -19,6 +23,81 @@ const MODES: Array<{ value: InterstitialMode; label: string; hint: string }> = [
     hint: 'Matching urls are routed immediately, without asking.',
   },
 ];
+
+const LOG_LEVEL_OPTIONS: Array<{ value: LogLevel; label: string }> = [
+  { value: 'error', label: 'Errors only' },
+  { value: 'warn', label: 'Warnings and errors' },
+  { value: 'info', label: 'Info (default)' },
+  { value: 'debug', label: 'Debug: every routing decision and message' },
+];
+
+function useLogLevel(): LogLevel {
+  const [level, setLevel] = useState<LogLevel>(getLogLevel);
+  useEffect(() => {
+    chrome.storage.local.get<{ logLevel?: LogLevel }>(LOG_LEVEL_STORAGE_KEY, value => {
+      setLevel(normalizeLogLevel(value.logLevel));
+    });
+    const listener = (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
+      const change = changes[LOG_LEVEL_STORAGE_KEY];
+      if (areaName === 'local' && change) {
+        setLevel(normalizeLogLevel(change.newValue));
+      }
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => chrome.storage.onChanged.removeListener(listener);
+  }, []);
+  return level;
+}
+
+function DiagnosticsSection() {
+  const logLevel = useLogLevel();
+  const [copyState, setCopyState] = useState<string>();
+
+  const copyClicked = async () => {
+    setCopyState('Collecting…');
+    try {
+      const result = await copyDiagnostics('options page');
+      setCopyState(
+        result.backgroundIncluded
+          ? 'Copied to the clipboard.'
+          : 'Copied, but the service worker did not answer: only this page is included.',
+      );
+    } catch (error) {
+      setCopyState(`Copy failed: ${String(error)}`);
+    }
+  };
+
+  return (
+    <>
+      <h2>Diagnostics</h2>
+      <p>
+        The extension keeps its most recent log lines in memory. Copy them together with the
+        connection state, user profiles and rules to include in a bug report. Group codes and
+        tokens are left out and tab urls are reduced to their origin, but do review the text
+        before sharing it.
+      </p>
+      <label className="field">
+        <span>Log level</span>
+        <select
+          value={logLevel}
+          onChange={event => void saveLogLevel(normalizeLogLevel(event.target.value))}
+        >
+          {LOG_LEVEL_OPTIONS.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="row">
+        <button type="button" className="btn secondary" onClick={() => void copyClicked()}>
+          Copy diagnostics
+        </button>
+        {copyState && <span role="status">{copyState}</span>}
+      </div>
+    </>
+  );
+}
 
 export function SettingsTab() {
   const settings = useStore(settingsStore);
@@ -58,6 +137,8 @@ export function SettingsTab() {
           }
         />
       </label>
+
+      <DiagnosticsSection />
     </section>
   );
 }

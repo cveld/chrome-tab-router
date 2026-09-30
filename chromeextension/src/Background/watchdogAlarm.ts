@@ -1,5 +1,8 @@
 import { connectionStatus, reconnectIfDisconnected } from './signalr';
 import { ConnectionStatusEnum } from '../Shared/signalrModels';
+import { createLogger } from '../Shared/logger';
+
+const logger = createLogger('watchdog');
 
 const ALARM_NAME = 'signalr-watchdog';
 
@@ -18,7 +21,7 @@ export function registerWatchdogAlarm() {
       return;
     }
     if (connectionStatus.value.status !== ConnectionStatusEnum.connected) {
-      console.log('watchdog: connection not healthy, reconnecting', connectionStatus.value);
+      logger.info('connection not healthy, reconnecting', connectionStatus.value);
       reconnectIfDisconnected();
     }
   });

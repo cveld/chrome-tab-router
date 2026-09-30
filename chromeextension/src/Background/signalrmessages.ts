@@ -6,6 +6,9 @@ import { apiBaseUrl } from './settings';
 import { connection } from './signalr';
 import { MessageStatusEnum } from '../Shared/MessageStatusModels';
 import type { IMessageStatus } from '../Shared/MessageStatusModels';
+import { createLogger } from '../Shared/logger';
+
+const logger = createLogger('messages');
 
 export const messageStatus = new BehaviorSubject<IMessageStatus>({ status: MessageStatusEnum.init });
 
@@ -21,6 +24,7 @@ export async function sendSignalrMessage<T>(message: ISignalrMessage<T>) {
     return;
   }
   const groupcodeAuthorization = groupcode.value.signature;
+  logger.debug('send', message.type);
   try {
     const result = await axios.post(`${apiBaseUrl}/api/messages`, {
       ...message,
@@ -35,7 +39,7 @@ export async function sendSignalrMessage<T>(message: ISignalrMessage<T>) {
     return result.data;
   }
   catch (err) {
-    console.log(err);
+    logger.error(`send ${message.type} failed:`, err);
     messageStatus.next({
       status: MessageStatusEnum.error,
       error: `Cannot send message: ${err}`
@@ -70,6 +74,7 @@ function filterself(func: (message: ISignalrMessage<any>) => void) {
       // skip self
       return;
     }
+    logger.debug('received', message.type, 'from', message.chromeinstanceid);
     func(message);
   };
 }

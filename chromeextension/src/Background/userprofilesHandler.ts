@@ -9,6 +9,9 @@ import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChrome
 import { rules } from './rulesHandler';
 import type { IRule } from '../Shared/RuleModels';
 import { mergeUserprofiles } from './userprofileHandlerUtility';
+import { createLogger } from '../Shared/logger';
+
+const logger = createLogger('userprofiles');
 
 export const userprofiles = new BehaviorSubject<IUserProfileStatus[]>([]);
 
@@ -64,7 +67,7 @@ export function registerUserprofilesHandler() {
 
   listeners.set('userprofiles', (oldValue, newValue) => {
     userprofiles.next(newValue);
-    console.log(`new userprofiles value: ${newValue}`);
+    logger.debug('userprofiles changed', newValue);
   });
 
   const popupmessaging = BackgroundChromeMessagingWithPort.getInstance('popup');
