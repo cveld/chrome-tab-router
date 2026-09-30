@@ -37,6 +37,20 @@ h1 {
   font-size: 1.6rem;
 }
 
+a {
+  color: var(--primary);
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+.intro {
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: -0.25rem 0 1.25rem;
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
