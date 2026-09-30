@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BackgroundConnectionBanner } from '../../src/UI/components/BackgroundConnectionBanner';
 import { ConnectionTab } from './components/ConnectionTab';
 import { GroupcodeTab } from './components/GroupcodeTab';
 import { LogTab } from './components/LogTab';
@@ -37,6 +38,7 @@ export function App() {
           </button>
         ))}
       </nav>
+      <BackgroundConnectionBanner />
       <main className="content">{active.render()}</main>
     </>
   );

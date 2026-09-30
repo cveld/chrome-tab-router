@@ -30,7 +30,10 @@ export default defineContentScript({
     // Kept defensively; see entrypoints/background.ts.
     const port = chrome.runtime.connect();
     port.onDisconnect.addListener(function () {
-      console.log('Content script disconnected from runtime');
+      // Reading lastError silences "Unchecked runtime.lastError" when the
+      // service worker is not running; the page learns about that through
+      // 'backgroundunreachable' instead.
+      console.log('Content script disconnected from runtime', chrome.runtime.lastError?.message ?? '');
     });
 
     dispatchEventToPage({ type: 'contentscriptready' });

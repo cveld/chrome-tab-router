@@ -3,6 +3,7 @@ import type { IRule } from '../../src/Shared/RuleModels';
 import type { IUserProfileStatus } from '../../src/Shared/UserprofileModels';
 import { ConnectionStatusEnum } from '../../src/Shared/signalrModels';
 import { findMatchingRule, suggestRegexForUrl } from '../../src/Shared/ruleMatching';
+import { BackgroundConnectionBanner } from '../../src/UI/components/BackgroundConnectionBanner';
 import { RuleDialog } from '../../src/UI/components/RuleDialog';
 import { UserProfileDialog } from '../../src/UI/components/UserProfileDialog';
 import {
@@ -108,6 +109,7 @@ export function RouterPage() {
   return (
     <main className="content narrow">
       <h1>Chrome Tab Router</h1>
+      <BackgroundConnectionBanner />
       <p className="router-url">{targetUrl}</p>
 
       <div className="router-decision">

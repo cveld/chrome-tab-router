@@ -122,6 +122,14 @@ Two distinct channels, in `chromeextension/src/Messaging/`:
   pages (options page and router page), via a long-lived `chrome.runtime.connect` port on channel
   `'popup'` (historical name); singletons per channel name. Background→page messages are broadcast
   to every connected port. The UI side's stores/handlers live in `src/UI/backgroundStores.ts`.
+  The page side reconnects with backoff when the port drops (service worker restarted or never
+  started), queues outgoing messages meanwhile, and re-sends the initial `get*` requests via
+  `onReconnect`; `backgroundConnectionStore` drives the "background not reachable" banner.
+
+The web app ↔ content script bridge (`DocumentEventing.ts`) reports a failed
+`chrome.runtime.sendMessage` to the page as a `backgroundunreachable { error }` event instead
+of an empty answer. A fresh Chrome Web Store install has been seen to leave the service worker
+permanently inactive until the extension is toggled off/on at chrome://extensions.
 
 Shared message/data contracts live in `chromeextension/src/Shared/*Models.ts` (`IRule`,
 `IUserProfileStatus`, `ITabStatus`, SignalR message types) — check these first when changing any

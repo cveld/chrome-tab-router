@@ -402,3 +402,23 @@ input:disabled {
 .error-text {
   color: var(--danger);
 }
+
+.banner {
+  margin: 12px 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+}
+
+.banner-error {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.banner-detail {
+  margin-top: 4px;
+  font-size: 0.85em;
+  font-family: ui-monospace, monospace;
+  opacity: 0.85;
+}

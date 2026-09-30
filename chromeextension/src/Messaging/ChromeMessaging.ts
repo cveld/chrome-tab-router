@@ -9,11 +9,18 @@ export function setHandler<T>(action: string, callback: ICallback<T>) {
   messageHandlers.set(action, callback);
 }
 
-// Only to be used from content script or extension page script to background script
+// Only to be used from content script or extension page script to background script.
+// Rejects with chrome.runtime.lastError, e.g. "Could not establish connection.
+// Receiving end does not exist." when the service worker is not running.
 export function sendMessage<T>(message: IMessageType<T>): Promise<any> {
-  return new Promise<any>((resolve) => {
+  return new Promise<any>((resolve, reject) => {
     chrome.runtime.sendMessage(message, (response: any) => {
-      resolve(response);
+      const error = chrome.runtime.lastError;
+      if (error) {
+        reject(new Error(error.message));
+      } else {
+        resolve(response);
+      }
     });
   });
 }

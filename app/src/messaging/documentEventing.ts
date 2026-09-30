@@ -6,6 +6,8 @@
 // - detail is { type, payload }
 // - handshake: page pings; the content script answers with pong or
 //   contentscriptready, after which the page may issue get* requests.
+// - backgroundunreachable { error }: the content script is present but the
+//   extension's background service worker did not answer a request.
 
 import { createStore } from '../lib/stores';
 
@@ -26,6 +28,9 @@ export function dispatchEventToContentScript(event: IEventType): void {
 }
 
 export const contentScriptReadyStore = createStore<boolean>(false);
+
+/** Last error reported by the content script when the background was unreachable. */
+export const backgroundErrorStore = createStore<string>('');
 
 let initialized = false;
 
@@ -56,6 +61,10 @@ export function ensureDocumentEventing(): void {
   });
   eventHandlers.set('pong', () => setContentScriptReady());
   eventHandlers.set('contentscriptready', () => setContentScriptReady());
+  eventHandlers.set('backgroundunreachable', event => {
+    const payload = event.payload as { error?: string } | undefined;
+    backgroundErrorStore.set(payload?.error || 'Unknown error');
+  });
 
   // Kick off the handshake; if the content script loaded before us it will
   // answer pong, otherwise it pings/announces contentscriptready itself.

@@ -31,41 +31,65 @@ export const settingsStore = createStore<IInterstitialSettings>(defaultInterstit
 messaging.setHandler<IRule[]>('rules', message => {
   rulesStore.set(message.payload ?? []);
 });
-messaging.sendMessage({ type: 'getrules' });
 
 messaging.setHandler<IUserProfileStatus[]>('userprofiles', message => {
   userProfilesStore.set(message.payload ?? []);
 });
-messaging.sendMessage({ type: 'getuserprofiles' });
 
 messaging.setHandler<IConnectionStatus>('ConnectionStatus', message => {
   if (message.payload) {
     connectionStatusStore.set(message.payload);
   }
 });
-messaging.sendMessage({ type: 'getconnectionstatus' });
 
 // The encoded group code blob is what gets copied between profiles; it is the
 // payload of both the initial getgroupcode response and subsequent broadcasts.
 messaging.setHandler<{ encoded?: string }>('groupcode', message => {
   groupcodeStore.set(message.payload?.encoded ?? '');
 });
-messaging.sendMessage({ type: 'getgroupcode' });
 
 messaging.setHandler<string>('chromeinstanceid', message => {
   chromeInstanceIdStore.set(message.payload ?? '');
 });
-messaging.sendMessage({ type: 'getchromeinstanceid' });
 
 messaging.setHandler<ITabStatus[]>('log', message => {
   tabLogStore.set(message.payload ?? []);
 });
-messaging.sendMessage({ type: 'getlog' });
 
 messaging.setHandler<IInterstitialSettings>('settings', message => {
   settingsStore.set(normalizeInterstitialSettings(message.payload));
 });
-messaging.sendMessage({ type: 'getsettings' });
+
+// --- Initial state requests ------------------------------------------------
+
+// Each get* request makes the background answer with the matching message
+// above. They are re-sent after every reconnect, because a restarted service
+// worker only pushes updates, not the state the page already missed.
+function requestInitialState(): void {
+  messaging.sendMessage({ type: 'getrules' });
+  messaging.sendMessage({ type: 'getuserprofiles' });
+  messaging.sendMessage({ type: 'getconnectionstatus' });
+  messaging.sendMessage({ type: 'getgroupcode' });
+  messaging.sendMessage({ type: 'getchromeinstanceid' });
+  messaging.sendMessage({ type: 'getlog' });
+  messaging.sendMessage({ type: 'getsettings' });
+}
+requestInitialState();
+messaging.onReconnect(requestInitialState);
+
+export interface IBackgroundConnection {
+  connected: boolean;
+  /** chrome.runtime.lastError of the last failed attempt, e.g. "Receiving end does not exist." */
+  error?: string;
+}
+
+export const backgroundConnectionStore = createStore<IBackgroundConnection>({
+  connected: messaging.connected,
+  error: messaging.lastError,
+});
+messaging.onConnectionChange((connected, error) => {
+  backgroundConnectionStore.set({ connected, error: connected ? undefined : error ?? messaging.lastError });
+});
 
 // --- Commands (UI -> background) -------------------------------------------
 
