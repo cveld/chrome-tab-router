@@ -1,0 +1,30 @@
+.dev-muted {
+  color: var(--text-muted);
+}
+
+.dev-tools {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dev-tools li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.dev-tools a {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.dev-info th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 4px 16px 4px 0;
+}
+
+.dev-info td code {
+  word-break: break-all;
+}

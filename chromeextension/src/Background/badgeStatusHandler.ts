@@ -1,51 +1,35 @@
-import { map } from 'rxjs/operators';
-import { ConnectionStatusEnum } from '../Shared/signalrModels';
+import { BehaviorSubject, combineLatest } from 'rxjs';
 import { connectionStatus } from './signalr';
 import { groupcode } from './BackgroundGroupcodeHandler';
 import { messageStatus } from './signalrmessages';
-import { combineLatest } from 'rxjs';
-import { MessageStatusEnum } from '../Shared/MessageStatusModels';
+import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';
+import { computeBadgeStatus, okBadgeStatus, type IBadgeStatus } from '../Shared/BadgeStatusModels';
 
-function ok() {
-  chrome.action.setTitle({ title: 'Chrome tab router' });
+export const badgeStatus = new BehaviorSubject<IBadgeStatus>(okBadgeStatus);
+
+function applyBadge(status: IBadgeStatus) {
+  chrome.action.setTitle({ title: status.problem ? `${status.title} (click for details)` : status.title });
   chrome.action.setBadgeText({
-    text: ''
+    text: status.problem ? '!' : ''
   });
   chrome.action.setBadgeBackgroundColor({
-    color: '#44F'
-  });
-}
-
-function error(text: string) {
-  chrome.action.setTitle({ title: text });
-  chrome.action.setBadgeText({
-    text: '!'
-  });
-  chrome.action.setBadgeBackgroundColor({
-    color: '#F00'
+    color: status.problem ? '#F00' : '#44F'
   });
 }
 
 export function registerBadgeStatusHandler() {
-  combineLatest([connectionStatus, groupcode, messageStatus]).pipe(map(value => {
-    return {
-      connectionStatus: value[0],
-      groupcode: value[1],
-      messageStatus: value[2]
-    };
-  })).subscribe(value => {
-    if (!value.groupcode.signature) {
-      error('Groupcode not set');
-      return;
-    }
-    if (value.messageStatus.status === MessageStatusEnum.error) {
-      error(`Messages error: ${value.messageStatus.error}`);
-      return;
-    }
-    if (value.connectionStatus.status !== ConnectionStatusEnum.connected) {
-      error(`Connection error: ${value.connectionStatus.error}`);
-      return;
-    }
-    ok();
+  combineLatest([connectionStatus, groupcode, messageStatus]).subscribe(([connection, code, messages]) => {
+    badgeStatus.next(computeBadgeStatus(connection, !!code.signature, messages));
+  });
+
+  // Clicking the icon opens the options page, which shows the reason behind
+  // the "!" badge from these messages.
+  const popupmessaging = BackgroundChromeMessagingWithPort.getInstance('popup');
+  badgeStatus.subscribe(status => {
+    applyBadge(status);
+    popupmessaging.sendMessage({ type: 'badgestatus', payload: status });
+  });
+  popupmessaging.messageHandlers.set('getbadgestatus', () => {
+    popupmessaging.sendMessage({ type: 'badgestatus', payload: badgeStatus.value });
   });
 }

@@ -14,6 +14,8 @@ import {
   normalizeInterstitialSettings,
   type IInterstitialSettings,
 } from '../Shared/SettingsModels';
+import { okBadgeStatus, type IBadgeStatus } from '../Shared/BadgeStatusModels';
+import type { IBackgroundDiagnostics } from '../Shared/DiagnosticsModels';
 import { createStore } from './stores';
 
 const messaging = ScriptChromeMessagingWithPort.getInstance('popup');
@@ -27,6 +29,7 @@ export const groupcodeStore = createStore<string>('');
 export const chromeInstanceIdStore = createStore<string>('');
 export const tabLogStore = createStore<ITabStatus[]>([]);
 export const settingsStore = createStore<IInterstitialSettings>(defaultInterstitialSettings);
+export const badgeStatusStore = createStore<IBadgeStatus>(okBadgeStatus);
 
 messaging.setHandler<IRule[]>('rules', message => {
   rulesStore.set(message.payload ?? []);
@@ -60,6 +63,20 @@ messaging.setHandler<IInterstitialSettings>('settings', message => {
   settingsStore.set(normalizeInterstitialSettings(message.payload));
 });
 
+messaging.setHandler<IBadgeStatus>('badgestatus', message => {
+  badgeStatusStore.set(message.payload ?? okBadgeStatus);
+});
+
+// The answer is broadcast to every open page, so whoever is waiting takes it.
+let pendingDiagnostics: Array<(diagnostics: IBackgroundDiagnostics) => void> = [];
+messaging.setHandler<IBackgroundDiagnostics>('diagnostics', message => {
+  const waiting = pendingDiagnostics;
+  pendingDiagnostics = [];
+  if (message.payload) {
+    waiting.forEach(resolve => resolve(message.payload!));
+  }
+});
+
 // --- Initial state requests ------------------------------------------------
 
 // Each get* request makes the background answer with the matching message
@@ -73,6 +90,7 @@ function requestInitialState(): void {
   messaging.sendMessage({ type: 'getchromeinstanceid' });
   messaging.sendMessage({ type: 'getlog' });
   messaging.sendMessage({ type: 'getsettings' });
+  messaging.sendMessage({ type: 'getbadgestatus' });
 }
 requestInitialState();
 messaging.onReconnect(requestInitialState);
@@ -164,6 +182,22 @@ export function saveSettings(settings: IInterstitialSettings): void {
   const normalized = normalizeInterstitialSettings(settings);
   settingsStore.set(normalized);
   messaging.sendMessage({ type: 'settings', payload: normalized });
+}
+
+/** Resolves undefined when the service worker does not answer in time. */
+export function requestBackgroundDiagnostics(
+  timeoutMs = 3000,
+): Promise<IBackgroundDiagnostics | undefined> {
+  return new Promise(resolve => {
+    const done = (diagnostics: IBackgroundDiagnostics | undefined) => {
+      clearTimeout(timer);
+      pendingDiagnostics = pendingDiagnostics.filter(pending => pending !== done);
+      resolve(diagnostics);
+    };
+    const timer = setTimeout(() => done(undefined), timeoutMs);
+    pendingDiagnostics.push(done);
+    messaging.sendMessage({ type: 'getdiagnostics' });
+  });
 }
 
 /** Hand the url to another profile; the background closes this tab afterwards. */

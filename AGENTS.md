@@ -32,6 +32,8 @@ Root (orchestrates all three projects via `npm-run-all`):
 - `npm run watch:all` — run the Functions host, the extension dev build (`wxt`), and the Vite
   `app` in parallel.
 - `npm run chromeextension:prod` — production zip of the extension (WXT build + zip).
+- `npm run chromeextension:build:dev` / `:build:azure` / `:build:localfunc` — forward to the
+  matching `chromeextension/` unpacked builds.
 
 `api/` (requires the Azure Functions Core Tools `func` on PATH; copy
 `local.settings.sample.json` to `local.settings.json` and fill in `AzureSignalRConnectionString`
@@ -47,9 +49,17 @@ and `EncryptionKey` first):
 - `npm run typecheck`.
 
 `chromeextension/` (WXT + React + vitest):
-- `npm run dev` — dev build with HMR against `.env` URLs.
+- `npm run dev` — dev server with HMR against `.env` URLs; writes a `-serve` folder.
 - `npm run dev:azure` / `npm run dev:localfunc` — same, against `.env.azure` /
   `.env.localfunc` URLs.
+- `npm run build:dev` / `npm run build:localfunc` / `npm run build:azure` — self-contained
+  unpacked builds (`.output/chrome-mv3-dev`, `-localfunc`, `-azure`) for those backends.
+- Non-production builds are named `Chrome Tab Router (<mode>)` (`(<mode> serve)` for the dev
+  server) so side-by-side unpacked installs can be told apart; production keeps the plain name.
+- Never load a `-serve` folder by hand: it needs the running dev server (a `config:resolved`
+  hook in `wxt.config.ts` adds the suffix so `wxt` and `wxt build` never share a folder).
+- `.env.azure` targets production; for a pre-prod or PR staging backend set
+  `WXT_API_BASE_URL` / `WXT_CONFIG_URL` in gitignored `.env.azure.local`.
 - `npm run build` — production build to `.output/chrome-mv3`.
 - `npm run zip` — production build + zip (pre-publish).
 - `npm test` / `npx vitest run` — run all tests; `npx vitest run path/to/file.test.ts` for a
@@ -57,6 +67,16 @@ and `EncryptionKey` first):
 - `npx tsc --noEmit` — typecheck (the generated `.wxt/tsconfig.json` lacks `jsx`; the project
   tsconfig adds it).
 - `npm run style` — prettier over the source files.
+
+Every extension context logs a build stamp at startup (`src/Shared/buildInfo.ts`: version, mode,
+build time, git commit with `-dirty` flag, API base URL), so a console shows which build is loaded.
+
+Log through `createLogger(scope)` from `src/Shared/logger.ts` rather than `console.*` (the content
+script is the exception). It filters by the log level (storage key `logLevel`, picked on the
+Settings tab, followed by every context via `registerLogLevelSync()` in `logStorage.ts`) and keeps
+the last 500 entries in a ring buffer with tokens and group code signatures redacted; the service
+worker's buffer is mirrored to `chrome.storage.session` so it survives worker restarts. Never log
+a raw group code or full tab URL (use `urlOrigin()`); the buffer ends up in bug reports.
 
 After building `chromeextension/`, load `chromeextension/.output/chrome-mv3` as an unpacked
 extension via `chrome://extensions` (Developer mode).
@@ -113,6 +133,24 @@ the background entrypoint in Node to read its config, so no `chrome.*` call may 
 - `interstitialSettingsHandler.ts` — owns the router page settings under storage key `settings`
   (`{ mode: 'off' | 'matched' | 'always', countdownSeconds }`). Machine-local by design: unlike
   rules and userprofiles they are never synced over SignalR.
+- `badgeStatusHandler.ts` — derives the red `!` icon badge (`computeBadgeStatus()` in
+  `src/Shared/BadgeStatusModels.ts`: missing group code > message error > not connected). A first
+  attempt (`init`/`connecting` without error) is `connecting`, not a problem: the banner shows a
+  blue "Connecting…" and then a short green "Connected"; a backoff retry keeps the previous error
+  so a failing connection stays red. It broadcasts the status as `badgestatus`; the options page (opened by clicking the icon) explains it in
+  `BadgeStatusBanner` with a button to the matching tab.
+- `devMenuHandler.ts` — non-production builds only: a "Development" item in the icon's context
+  menu opens `entrypoints/dev/` (`dev.html`), a hub listing dev-only tools (`DEV_TOOLS` in
+  `DevPage.tsx`) plus build info. Tools: `entrypoints/badge-preview/`, a simulator for every
+  badge state, and `entrypoints/groupcode-scenario/`, a timed replay of pasting a group code
+  (connecting, then success or failure); both share the mocks in `badge-preview/MockChrome.tsx`.
+  `DEV_ENTRYPOINTS` in `wxt.config.ts` drops these pages, and the manifest drops the
+  `contextMenus` permission, in `production` mode; register a new dev page in both lists.
+- `diagnosticsHandler.ts` — answers `getdiagnostics` with `diagnostics` (`IBackgroundDiagnostics`
+  in `src/Shared/DiagnosticsModels.ts`): status, profiles, rules, recent tabs (origins only) and
+  the log buffer. The Settings tab's "Copy diagnostics" button (`src/UI/diagnostics.ts`) merges
+  it with the page's own log into a text report; without an answer within 3s it copies the page
+  state alone.
 
 ### Messaging layers
 
@@ -130,6 +168,13 @@ The web app ↔ content script bridge (`DocumentEventing.ts`) reports a failed
 `chrome.runtime.sendMessage` to the page as a `backgroundunreachable { error }` event instead
 of an empty answer. A fresh Chrome Web Store install has been seen to leave the service worker
 permanently inactive until the extension is toggled off/on at chrome://extensions.
+
+The content script only runs on the web app's own origin: `contentScriptMatches()`
+(`src/Shared/contentScriptMatches.ts`) derives its match pattern from `WXT_CONFIG_URL` at build
+time (port dropped, so localhost builds match any port), plus the comma-separated
+`WXT_CONTENT_SCRIPT_EXTRA_URLS` (production whitelists the custom domain
+`chrome-tab-router.carlintveld.nl` this way). Never widen it to
+`*.azurestaticapps.net`: any Static Web App could then read or overwrite the group code.
 
 Shared message/data contracts live in `chromeextension/src/Shared/*Models.ts` (`IRule`,
 `IUserProfileStatus`, `ITabStatus`, SignalR message types) — check these first when changing any

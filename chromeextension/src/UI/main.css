@@ -378,6 +378,7 @@ input:disabled {
   color: #991b1b;
 }
 
+.status-badge.connecting,
 .status-badge.routing,
 .status-badge.created {
   background: #dbeafe;
@@ -414,6 +415,22 @@ input:disabled {
   background: #fee2e2;
   border-color: #fecaca;
   color: #991b1b;
+}
+
+.banner-info {
+  background: #dbeafe;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.banner-success {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.banner-actions {
+  margin-top: 8px;
 }
 
 .banner-detail {

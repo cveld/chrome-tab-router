@@ -1,0 +1,32 @@
+.preset input {
+  margin: 0;
+}
+
+.scenario-options {
+  margin-top: 12px;
+  gap: 24px;
+}
+
+.scenario-steps li.current {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.scenario-tab {
+  color: var(--text);
+}
+
+.scenario-tab h3:first-child {
+  margin-top: 0;
+}
+
+.scenario-tab textarea {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 8px;
+}
+
+.scenario-log {
+  font-size: 0.9em;
+}

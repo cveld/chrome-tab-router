@@ -11,6 +11,10 @@ import { registerInterstitialSettingsHandler } from '../src/Background/interstit
 import { registerTabUpdateHandler } from '../src/Background/tabUpdateHandler';
 import { registerBadgeStatusHandler } from '../src/Background/badgeStatusHandler';
 import { registerWatchdogAlarm } from '../src/Background/watchdogAlarm';
+import { registerDevMenuHandler } from '../src/Background/devMenuHandler';
+import { registerDiagnosticsHandler } from '../src/Background/diagnosticsHandler';
+import { logBuildInfo } from '../src/Shared/buildInfo';
+import { registerLogLevelSync, registerLogPersistence } from '../src/Shared/logStorage';
 
 // WXT imports this file in a NodeJS environment to read the config passed to
 // defineBackground(), so no chrome.* (or anything that transitively touches
@@ -20,6 +24,9 @@ import { registerWatchdogAlarm } from '../src/Background/watchdogAlarm';
 // is only called from here, synchronously, so listeners are attached before
 // Chrome delivers whatever event woke this worker up.
 export default defineBackground(() => {
+  registerLogLevelSync();
+  registerLogPersistence();
+  logBuildInfo('service worker');
   // Order matters: signalr/signalrmessages/chromestorage must be registered
   // before anything that calls addHandler()/listeners.set() against them.
   registerChromeMessaging();
@@ -35,6 +42,8 @@ export default defineBackground(() => {
   registerTabUpdateHandler();
   registerBadgeStatusHandler();
   registerWatchdogAlarm();
+  registerDevMenuHandler();
+  registerDiagnosticsHandler();
 
   // Required to bootstrap chrome.runtime.connect() from content scripts —
   // without an onConnect listener already attached, a content script

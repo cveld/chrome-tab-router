@@ -1,6 +1,7 @@
 export const enum ConnectionStatusEnum {
     undefined,
     connected = 'connected',
+    connecting = 'connecting',
     disconnected = 'disconnected',
     error = 'error',
     init = 'init'

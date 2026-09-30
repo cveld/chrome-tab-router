@@ -1,0 +1,133 @@
+.muted {
+  color: var(--text-muted);
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.preset {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.9em;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.preset:hover {
+  border-color: var(--primary);
+}
+
+.preset span {
+  color: var(--text-muted);
+}
+
+.sim-controls {
+  display: grid;
+  grid-template-columns: max-content 200px 1fr;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.sim-controls > span:nth-child(3n + 1) {
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .sim-controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mock-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: #e8eaed;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.mock-icon {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mock-icon:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.mock-icon img {
+  width: 24px;
+  height: 24px;
+}
+
+.mock-badge {
+  position: absolute;
+  right: -2px;
+  bottom: 0;
+  min-width: 14px;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: #f00;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 14px;
+}
+
+.mock-tooltip {
+  font-size: 0.85em;
+  font-family: ui-monospace, monospace;
+  color: var(--text-muted);
+}
+
+.mock-window {
+  border: 1px solid var(--border);
+  border-top: none;
+  background: var(--bg);
+}
+
+.mock-window-bar {
+  padding: 4px 12px;
+  font-size: 0.8em;
+  color: var(--text-muted);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.mock-tab-content {
+  padding: 1rem 2rem 1.5rem;
+  color: var(--text-muted);
+}
+
+.gallery-item {
+  margin: 12px 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.gallery-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.gallery-item .banner {
+  margin-left: 0;
+  margin-right: 0;
+}
