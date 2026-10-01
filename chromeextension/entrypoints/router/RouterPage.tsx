@@ -20,6 +20,10 @@ import {
 } from '../../src/UI/backgroundStores';
 import { useStore } from '../../src/UI/stores';
 
+// Without a removetab from the target within this window the hand-over is
+// treated as lost (target offline, message dropped) and the choices re-enabled.
+const HANDOVER_TIMEOUT_MS = 10_000;
+
 export function RouterPage() {
   const targetUrl = useMemo(() => new URLSearchParams(window.location.search).get('url') ?? '', []);
 
@@ -35,9 +39,13 @@ export function RouterPage() {
   const [renaming, setRenaming] = useState<IUserProfileStatus | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [handedOver, setHandedOver] = useState<string | null>(null);
+  const [unconfirmed, setUnconfirmed] = useState<string | null>(null);
   // The tab disappears once the target profile confirms, so every path must
   // act at most once — a second routetab would open a duplicate tab there.
   const decided = useRef(false);
+  const handoverTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => () => clearTimeout(handoverTimer.current), []);
 
   const match = useMemo(() => findMatchingRule(rules, targetUrl), [rules, targetUrl]);
   const connected = connectionStatus.status === ConnectionStatusEnum.connected;
@@ -56,12 +64,19 @@ export function RouterPage() {
     }
     decided.current = true;
     setCancelled(true);
+    setUnconfirmed(null);
     if (targetUserprofile === ownInstanceId) {
       openTabHere({ url: targetUrl, tabId });
       return;
     }
-    setHandedOver(profileName(targetUserprofile));
+    const name = profileName(targetUserprofile);
+    setHandedOver(name);
     routeTab({ url: targetUrl, tabId, targetUserprofile });
+    handoverTimer.current = setTimeout(() => {
+      decided.current = false;
+      setHandedOver(null);
+      setUnconfirmed(name);
+    }, HANDOVER_TIMEOUT_MS);
   }
 
   useEffect(() => {
@@ -138,6 +153,12 @@ export function RouterPage() {
           </p>
         )}
         {handedOver && <p>Handed over to {handedOver}; this tab closes automatically.</p>}
+        {unconfirmed && (
+          <p className="error-text">
+            No confirmation from {unconfirmed} within {HANDOVER_TIMEOUT_MS / 1000} s — it may be
+            offline. Pick a profile again or open the url here.
+          </p>
+        )}
       </div>
 
       {!connected && (
@@ -155,7 +176,7 @@ export function RouterPage() {
               <button
                 type="button"
                 className={`btn ${own ? 'primary' : 'secondary'}`}
-                disabled={tabId === undefined || (!own && !connected)}
+                disabled={handedOver !== null || tabId === undefined || (!own && !connected)}
                 onClick={() => hand(profile.chromeInstanceId!)}
               >
                 {profile.name || profile.chromeInstanceId}
