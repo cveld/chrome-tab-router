@@ -15,6 +15,11 @@ interface IGroupcode {
   encoded?: string
 }
 export const groupcode = new BehaviorSubject<IGroupcode>({});
+/**
+ * `groupcode` starts out empty until the first (async) storage read finishes, so
+ * "no group code" is only meaningful once this is true.
+ */
+export const groupcodeLoaded = new BehaviorSubject<boolean>(false);
 
 function setGroupcodeHandler(request: IMessageType<any>, sender: chrome.runtime.MessageSender, sendResponse: any) {
   const newgroupcode = request.payload;
@@ -26,14 +31,18 @@ export function registerBackgroundGroupcodeHandler() {
   // the chrome storage contains the base64-wrapped version;
   // the BehaviorSubject contains the decoded version
   chrome.storage.local.get<{ groupcode?: { encoded: string } }>('groupcode', value => {
-    if (!value || Object.keys(value).length == 0) {
-      // the groupcode is undefined; i.e. not yet stored in the chrome local storage. Skip it
-      return;
+    try {
+      if (!value || Object.keys(value).length == 0) {
+        // the groupcode is undefined; i.e. not yet stored in the chrome local storage. Skip it
+        return;
+      }
+      const groupcodestring = atob(value.groupcode!.encoded);
+      const groupcodevalue = JSON.parse(groupcodestring);
+      groupcodevalue.encoded = value.groupcode!.encoded;
+      groupcode.next(groupcodevalue);
+    } finally {
+      groupcodeLoaded.next(true);
     }
-    const groupcodestring = atob(value.groupcode!.encoded);
-    const groupcodevalue = JSON.parse(groupcodestring);
-    groupcodevalue.encoded = value.groupcode!.encoded;
-    groupcode.next(groupcodevalue);
   });
 
   listeners.set('groupcode', (oldValue: IGroupcode | null, newValue: IGroupcode) => {

@@ -1,6 +1,6 @@
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import { connectionStatus } from './signalr';
-import { groupcode } from './BackgroundGroupcodeHandler';
+import { groupcode, groupcodeLoaded } from './BackgroundGroupcodeHandler';
 import { messageStatus } from './signalrmessages';
 import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';
 import { computeBadgeStatus, okBadgeStatus, type IBadgeStatus } from '../Shared/BadgeStatusModels';
@@ -18,9 +18,13 @@ function applyBadge(status: IBadgeStatus) {
 }
 
 export function registerBadgeStatusHandler() {
-  combineLatest([connectionStatus, groupcode, messageStatus]).subscribe(([connection, code, messages]) => {
-    badgeStatus.next(computeBadgeStatus(connection, !!code.signature, messages));
-  });
+  combineLatest([connectionStatus, groupcode, messageStatus, groupcodeLoaded]).subscribe(
+    ([connection, code, messages, loaded]) => {
+      // Until storage has been read, an empty group code means "unknown", not
+      // "missing"; judging it now flashes a false "Groupcode not set" at startup.
+      if (!loaded) return;
+      badgeStatus.next(computeBadgeStatus(connection, !!code.signature, messages));
+    });
 
   // Clicking the icon opens the options page, which shows the reason behind
   // the "!" badge from these messages.
