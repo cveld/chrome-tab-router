@@ -15,13 +15,21 @@
       "release-type": "node",
       "component": "extension",
       "changelog-path": "CHANGELOG.md"
+    },
+    "localsync": {
+      "release-type": "node",
+      "component": "localsync",
+      "changelog-path": "CHANGELOG.md"
     }
   },
   "plugins": [
     {
       "type": "linked-versions",
       "groupName": "webapp",
-      "components": ["webapp-app", "webapp-api"]
+      "components": [
+        "webapp-app",
+        "webapp-api"
+      ]
     }
   ]
 }

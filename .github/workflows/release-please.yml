@@ -12,6 +12,12 @@ on:
           release-please and running publish-extension directly against it.
         required: false
         type: string
+      localsync_tag:
+        description: >-
+          Local relay tag to (re)publish to npm (e.g. localsync-v0.1.0), skipping
+          release-please and running publish-localsync directly against it.
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -24,6 +30,8 @@ jobs:
     outputs:
       extension_released: ${{ steps.release.outputs['chromeextension--release_created'] }}
       extension_tag: ${{ steps.release.outputs['chromeextension--tag_name'] }}
+      localsync_released: ${{ steps.release.outputs['localsync--release_created'] }}
+      localsync_tag: ${{ steps.release.outputs['localsync--tag_name'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -109,3 +117,49 @@ jobs:
             echo "Publish failed with HTTP ${publish_status}" >&2
             exit 1
           fi
+
+  # Publishes the local relay (localsync/) to npm, so the extension's
+  # `npx chrome-tab-router-localsync` instructions work.
+  #
+  # Uses npm trusted publishing (OIDC): no npm token is stored. One-time setup on
+  # npmjs.com, under the package's Settings > Trusted publisher: GitHub Actions,
+  # organization/user "cveld", repository "chrome-tab-router", workflow
+  # "release-please.yml". A package has to exist before that can be configured,
+  # so publish the very first version by hand (`npm publish` in localsync/).
+  publish-localsync:
+    needs: release-please
+    if: |
+      always() &&
+      needs.release-please.result != 'failure' &&
+      (needs.release-please.outputs.localsync_released == 'true' || inputs.localsync_tag != '')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      LOCALSYNC_TAG: ${{ inputs.localsync_tag || needs.release-please.outputs.localsync_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.LOCALSYNC_TAG }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm 11.5.1 or newer; Node 22 ships an older npm.
+      - name: Update npm
+        run: npm install -g npm@^11.5.1
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: localsync
+
+      - name: Test
+        run: npm test
+        working-directory: localsync
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        working-directory: localsync
