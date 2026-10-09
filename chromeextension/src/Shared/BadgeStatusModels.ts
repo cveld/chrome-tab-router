@@ -1,8 +1,9 @@
 import { ConnectionStatusEnum, type IConnectionStatus } from './signalrModels';
 import { MessageStatusEnum, type IMessageStatus } from './MessageStatusModels';
+import type { SyncBackend } from './SyncBackendModels';
 
 /** Why the extension icon shows the red "!" badge; absent when all is well. */
-export type BadgeProblem = 'groupcode' | 'messages' | 'connection';
+export type BadgeProblem = 'setup' | 'groupcode' | 'pairing' | 'messages' | 'connection';
 
 export interface IBadgeStatus {
   problem?: BadgeProblem;
@@ -21,14 +22,22 @@ export const connectingBadgeStatus: IBadgeStatus = {
   title: 'Connecting to the sync service…',
 };
 
-/** Order matters: a missing group code explains every other failure, so it wins. */
+/**
+ * Order matters: a missing credential (group code for the cloud, pairing code
+ * for the local relay) explains every other failure, so it wins.
+ */
 export function computeBadgeStatus(
   connectionStatus: IConnectionStatus,
-  hasGroupcode: boolean,
+  hasCredential: boolean,
   messageStatus: IMessageStatus,
+  backend: SyncBackend = 'cloud',
+  backendChosen = true,
 ): IBadgeStatus {
-  if (!hasGroupcode) {
-    return { problem: 'groupcode', title: 'Groupcode not set' };
+  if (!hasCredential) {
+    // The tooltip stays neutral whichever backend is (not) chosen; the problem
+    // kind selects the specific explanation in the options page banner.
+    const problem = !backendChosen ? 'setup' : backend === 'local' ? 'pairing' : 'groupcode';
+    return { problem, title: 'Sync not configured' };
   }
   if (messageStatus.status === MessageStatusEnum.error) {
     return {

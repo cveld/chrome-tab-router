@@ -331,13 +331,22 @@ Notable details:
   type (`rules`, `userprofiles`, `ConnectionStatus`, `groupcode`, `chromeinstanceid`, `log`) and
   issues the matching `get*` request when the page loads
 
-### 3. Cross-profile messaging over SignalR
+### 3. Cross-profile messaging: cloud or local relay
 
-Implemented primarily by:
+Every cross-profile message goes through `sendSignalrMessage()` and `addHandler()` in
+`chromeextension/src/Background/signalrmessages.ts`. What carries it is an `ISyncTransport`
+(`transport.ts`), picked per profile by the machine-local `syncBackend` setting
+(`syncBackendHandler.ts`):
 
-- `chromeextension/src/Background/signalr.ts`
-- `chromeextension/src/Background/signalrmessages.ts`
-- `api/messages`
+- **cloud**: `cloudTransport.ts` POSTs to `api/messages`, and `signalr.ts` keeps the Azure SignalR
+  hub connection that receives. The scope is the shared **group code**, which ensures only
+  extension instances in the same group exchange state and routing commands.
+- **local**: `localsync.ts` (`LocalTransport`) keeps one WebSocket to the relay in `localsync/`
+  (`ws://127.0.0.1:<port>`, secret from the pairing code). The relay forwards every message to
+  all other connected profiles; merging stays in the extension.
+
+Both report into the same `connectionStatus`, so the badge, Connection tab and router page do
+not need to know which backend is active. Profiles on different backends do not see each other.
 
 This layer carries messages such as:
 
@@ -345,9 +354,6 @@ This layer carries messages such as:
 - user profile synchronization
 - `openurl`
 - `removetab`
-
-The SignalR scope is the shared **group code**, which ensures only extension instances in the
-same group exchange state and routing commands.
 
 ### Shared contracts
 

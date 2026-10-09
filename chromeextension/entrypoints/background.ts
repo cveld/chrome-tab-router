@@ -4,6 +4,9 @@ import { registerBackgroundChromeInstanceIdHandler } from '../src/Background/Bac
 import { registerBackgroundGroupcodeHandler } from '../src/Background/BackgroundGroupcodeHandler';
 import { registerSignalr } from '../src/Background/signalr';
 import { registerSignalrMessages } from '../src/Background/signalrmessages';
+import { registerSyncBackendHandler } from '../src/Background/syncBackendHandler';
+import { registerLocalSync } from '../src/Background/localsync';
+import { registerTransport } from '../src/Background/transport';
 import { registerUserprofilesHandler } from '../src/Background/userprofilesHandler';
 import { registerRulesHandler } from '../src/Background/rulesHandler';
 import { registerChromeProfileNameHandler } from '../src/Background/chromeprofileNameHandler';
@@ -40,7 +43,11 @@ export default defineBackground(() => {
   registerChromeStorageListener();
   registerBackgroundChromeInstanceIdHandler();
   registerBackgroundGroupcodeHandler();
+  registerSyncBackendHandler();
+  // Before registerSignalr(): see the note in registerLocalSync().
+  registerLocalSync();
   registerSignalr();
+  registerTransport();
   registerSignalrMessages();
   registerUserprofilesHandler();
   registerRulesHandler();

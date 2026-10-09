@@ -54,4 +54,27 @@ describe('computeBadgeStatus', () => {
     );
     expect(status).toMatchObject({ problem: 'connection', error: 'Failed to negotiate' });
   });
+
+  it('asks for a pairing code, not a group code, when the local relay is selected', () => {
+    const status = computeBadgeStatus({ status: ConnectionStatusEnum.error, error: 'boom' }, false, messagesOk, 'local');
+    expect(status).toMatchObject({ problem: 'pairing', title: 'Sync not configured' });
+  });
+
+  it('judges a paired local relay by its connection like the cloud', () => {
+    expect(computeBadgeStatus(connected, true, messagesOk, 'local').problem).toBeUndefined();
+    expect(
+      computeBadgeStatus({ status: ConnectionStatusEnum.error, error: 'unreachable' }, true, messagesOk, 'local'),
+    ).toMatchObject({ problem: 'connection' });
+  });
+
+  it('stays neutral until the user has chosen a backend', () => {
+    for (const backend of ['cloud', 'local'] as const) {
+      const status = computeBadgeStatus({ status: ConnectionStatusEnum.init }, false, messagesOk, backend, false);
+      expect(status).toMatchObject({ problem: 'setup', title: 'Sync not configured' });
+    }
+  });
+
+  it('does not call a working default unconfigured', () => {
+    expect(computeBadgeStatus(connected, true, messagesOk, 'cloud', false).problem).toBeUndefined();
+  });
 });

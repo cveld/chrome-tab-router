@@ -16,6 +16,7 @@ import {
 } from '../Shared/SettingsModels';
 import { okBadgeStatus, type IBadgeStatus } from '../Shared/BadgeStatusModels';
 import type { IBackgroundDiagnostics } from '../Shared/DiagnosticsModels';
+import type { ISyncBackendState, SyncBackend } from '../Shared/SyncBackendModels';
 import { createStore } from './stores';
 
 const messaging = ScriptChromeMessagingWithPort.getInstance('popup');
@@ -30,6 +31,7 @@ export const chromeInstanceIdStore = createStore<string>('');
 export const tabLogStore = createStore<ITabStatus[]>([]);
 export const settingsStore = createStore<IInterstitialSettings>(defaultInterstitialSettings);
 export const badgeStatusStore = createStore<IBadgeStatus>(okBadgeStatus);
+export const syncBackendStore = createStore<ISyncBackendState>({ backend: 'cloud', chosen: false });
 
 messaging.setHandler<IRule[]>('rules', message => {
   rulesStore.set(message.payload ?? []);
@@ -67,6 +69,12 @@ messaging.setHandler<IBadgeStatus>('badgestatus', message => {
   badgeStatusStore.set(message.payload ?? okBadgeStatus);
 });
 
+messaging.setHandler<ISyncBackendState>('syncbackend', message => {
+  if (message.payload) {
+    syncBackendStore.set(message.payload);
+  }
+});
+
 // The answer is broadcast to every open page, so whoever is waiting takes it.
 let pendingDiagnostics: Array<(diagnostics: IBackgroundDiagnostics) => void> = [];
 messaging.setHandler<IBackgroundDiagnostics>('diagnostics', message => {
@@ -91,6 +99,7 @@ function requestInitialState(): void {
   messaging.sendMessage({ type: 'getlog' });
   messaging.sendMessage({ type: 'getsettings' });
   messaging.sendMessage({ type: 'getbadgestatus' });
+  messaging.sendMessage({ type: 'getsyncbackend' });
 }
 requestInitialState();
 messaging.onReconnect(requestInitialState);
@@ -176,6 +185,20 @@ export function reconnectSignalr(): void {
 
 export function submitGroupcode(encoded: string): void {
   messaging.sendMessage({ type: 'groupcode', payload: { encoded } });
+}
+
+export function setSyncBackend(backend: SyncBackend): void {
+  syncBackendStore.set({ ...syncBackendStore.get(), backend, chosen: true });
+  messaging.sendMessage({ type: 'setsyncbackend', payload: backend });
+}
+
+/** `pairing` is the `ctr-local:<port>:<secret>` string printed by the relay; the background validates it. */
+export function setLocalPairing(pairing: string): void {
+  messaging.sendMessage({ type: 'setlocalpairing', payload: pairing });
+}
+
+export function clearLocalPairing(): void {
+  messaging.sendMessage({ type: 'clearlocalpairing' });
 }
 
 export function saveSettings(settings: IInterstitialSettings): void {

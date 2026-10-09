@@ -439,3 +439,23 @@ input:disabled {
   font-family: ui-monospace, monospace;
   opacity: 0.85;
 }
+
+.build-footer {
+  margin: 2rem 1rem 1rem;
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.command {
+  margin: 0.4rem 0;
+  padding: 0.5rem 0.75rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 0.85em;
+}
+
+ol li {
+  margin-bottom: 1rem;
+}

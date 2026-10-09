@@ -8,7 +8,7 @@ Chrome Tab Router is a Chrome extension that routes incoming links to a preferre
 profile: when a URL is opened in the "wrong" profile, it's handed off to the profile configured
 to own it. Published at the Chrome Web Store (see README.md).
 
-The repo is a monorepo of three independent npm projects, orchestrated from the root:
+The repo is a monorepo of four independent npm projects, orchestrated from the root:
 
 - `app/` — Vite + React single-page app for an Azure Static Web App. Handles login (via Static
   Web Apps' built-in `/.auth/me`) and issuing/displaying the shared group code, and hands the
@@ -18,6 +18,10 @@ The repo is a monorepo of three independent npm projects, orchestrated from the 
 - `chromeextension/` — the extension itself: Manifest V3, built with WXT (Vite-based). React
   19 background/content/options/router entrypoints under `entrypoints/`; shared logic under `src/`
   (`src/UI/` holds the React code both extension pages share).
+
+- `localsync/` — optional Node WebSocket relay (`ws`) that replaces the Azure backend for profiles on
+  one machine: nothing leaves the computer, no group code needed. The user picks the backend per
+  profile on the Settings tab (`cloud` or `local`).
 
 The extension's management UI (rules, user profiles, tab log, connection status) is a React app
 in `chromeextension/entrypoints/options/`, opened as a full tab via
@@ -48,12 +52,20 @@ and `EncryptionKey` first):
 - `npm run build` — production build to `dist/app` (the path the SWA workflow expects).
 - `npm run typecheck`.
 
+`localsync/` (Node >= 20, TypeScript, vitest):
+- `npm run localsync:start` (root) / `npm start` — build and run the relay on 127.0.0.1:48731.
+- `npm run localsync:pair` (root) — print the `ctr-local:<port>:<secret>` code to paste on the
+  extension's Settings tab. Config (port + secret) lives in `~/.chrome-tab-router/config.json`
+  (`CTR_LOCALSYNC_DIR` overrides).
+- `npm test` / `npm run typecheck`.
+
 `chromeextension/` (WXT + React + vitest):
 - `npm run dev` — dev server with HMR against `.env` URLs; writes a `-serve` folder.
-- `npm run dev:azure` / `npm run dev:localfunc` — same, against `.env.azure` /
-  `.env.localfunc` URLs.
-- `npm run build:dev` / `npm run build:localfunc` / `npm run build:azure` — self-contained
-  unpacked builds (`.output/chrome-mv3-dev`, `-localfunc`, `-azure`) for those backends.
+- `npm run dev:azure` / `npm run dev:localfunc` / `npm run dev:localsync` — same, against
+  `.env.azure` / `.env.localfunc` / `.env.localsync` (the last only changes the default sync
+  backend to `local`; the Settings tab choice always wins).
+- `npm run build:dev` / `npm run build:localfunc` / `npm run build:azure` / `npm run build:localsync`
+  — self-contained unpacked builds (`.output/chrome-mv3-dev`, `-localfunc`, `-azure`, `-localsync`).
 - Non-production builds are named `Chrome Tab Router (<mode>)` (`(<mode> serve)` for the dev
   server) so side-by-side unpacked installs can be told apart; production keeps the plain name.
 - Never load a `-serve` folder by hand: it needs the running dev server (a `config:resolved`
@@ -105,6 +117,32 @@ extension via `chrome://extensions` (Developer mode).
    and as a shared secret so only extension instances in the same group can talk to each other.
    `api/negotiate` decrypts the `groupcodeauthorization` header and cross-checks it against the
    `groupcode` header before issuing SignalR connection info.
+
+### Sync backends (cloud vs. local relay)
+
+Every cross-profile message goes through `sendSignalrMessage()` / `addHandler()` in
+`signalrmessages.ts`; what carries it is an `ISyncTransport` (`transport.ts`), picked by
+`activeTransport()` from the machine-local `syncBackend` setting (`syncBackendHandler.ts`, storage
+keys `syncBackend` and `localsyncpairing`, build default `WXT_DEFAULT_SYNC_BACKEND`). `syncBackend`
+is `null` until storage has been read; nothing may connect before that.
+
+- `cloudTransport.ts` — POST to `/api/messages`; `signalr.ts` keeps the hub connection that
+  receives, and only builds it while the backend is `cloud`.
+- `localsync.ts` — `LocalTransport`: one WebSocket to `ws://127.0.0.1:<port>` (subprotocols
+  `ctr-v1` + `ctr-secret.<secret>`; browsers cannot set headers). Connected means the relay's
+  `welcome` frame arrived (it carries the connection id). Pings every 15s, so the service worker
+  stays alive. Both transports report into the same `connectionStatus`, so the badge, Connection
+  tab and router page need no backend knowledge. `registerLocalSync()` must be registered before
+  `registerSignalr()`: when the backend changes, the stopping side resets the status first.
+- The relay (`localsync/src/server.ts`) is deliberately dumb: it forwards every frame to all other
+  clients and stamps `connectionid` itself; merging stays in the extension. Only loopback, only
+  `chrome-extension://` origins (or none, for Node clients), always the secret. Never log the
+  secret or the pairing code.
+- Badge: until the user has picked a backend (`syncBackendChosen`, i.e. the `syncBackend` key exists)
+  a missing credential is the neutral problem `setup` ("Sync not configured"); after the choice it
+  is `groupcode` (cloud) or `pairing` (local). A working default (e.g. an existing group code) is
+  never reported as unconfigured.
+- Profiles on different backends do not see each other; the Connection tab shows the active one.
 
 ### `chromeextension/src/Background/*`
 
@@ -188,7 +226,11 @@ stores modules, `components/Modal.tsx`, `components/RuleDialog.tsx` and the depe
 `main.css` (no Bootstrap/UI kit) — lives in `src/UI/`; only page-specific code stays under
 `entrypoints/`.
 
-Options page tabs: Welcome, Groupcode, Connection, User profiles, Rules, Log, Settings.
+Options page tabs: Welcome, Connection, User profiles, Rules, Log, Settings. The active tab is the
+url hash (`options.html#connection`, see `entrypoints/options/lib/tabs.ts`; the old `#groupcode`
+still resolves). Connection holds all sync setup: the cloud/local choice, status, and the step by
+step cloud (groupcode) and local relay (pairing code) instructions; Welcome only introduces them
+and links in. Settings has the router page and diagnostics.
 
 The router page (`entrypoints/router/`, built as `router.html`) is the interstitial a routed tab
 lands on. It reads the original URL from the `url` query parameter, re-runs `findMatchingRule()`

@@ -1,4 +1,5 @@
-import { connectionStatus, reconnectIfDisconnected } from './signalr';
+import { connectionStatus } from './signalr';
+import { activeTransport } from './transport';
 import { ConnectionStatusEnum } from '../Shared/signalrModels';
 import { createLogger } from '../Shared/logger';
 
@@ -20,9 +21,14 @@ export function registerWatchdogAlarm() {
     if (alarm.name !== ALARM_NAME) {
       return;
     }
+    const transport = activeTransport();
+    // Nothing to reconnect before a backend is chosen and its groupcode or pairing is set.
+    if (!transport?.canConnect()) {
+      return;
+    }
     if (connectionStatus.value.status !== ConnectionStatusEnum.connected) {
       logger.info('connection not healthy, reconnecting', connectionStatus.value);
-      reconnectIfDisconnected();
+      transport.reconnectIfDisconnected();
     }
   });
 }

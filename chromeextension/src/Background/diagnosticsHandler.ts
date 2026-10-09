@@ -9,6 +9,7 @@ import { groupcode } from './BackgroundGroupcodeHandler';
 import { interstitialSettings } from './interstitialSettingsHandler';
 import { rules } from './rulesHandler';
 import { connectionStatus } from './signalr';
+import { localPairing, syncBackend } from './syncBackendHandler';
 import { messageStatus } from './signalrmessages';
 import { getTabLog } from './tabUpdateHandler';
 import { userprofiles } from './userprofilesHandler';
@@ -21,6 +22,8 @@ function collectDiagnostics(): IBackgroundDiagnostics {
     chromeInstanceId: chromeInstanceId.value,
     profileName,
     groupcodePresent: !!groupcode.value.signature,
+    syncBackend: syncBackend.value,
+    localPairingPresent: !!localPairing.value,
     connection: connectionStatus.value,
     messages: messageStatus.value,
     badge: badgeStatus.value,

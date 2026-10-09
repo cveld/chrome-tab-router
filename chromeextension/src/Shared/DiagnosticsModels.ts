@@ -3,6 +3,7 @@ import type { IBuildInfo } from './buildInfo';
 import type { ILogEntry, LogLevel } from './logger';
 import type { IMessageStatus } from './MessageStatusModels';
 import type { IInterstitialSettings } from './SettingsModels';
+import type { SyncBackend } from './SyncBackendModels';
 import type { IConnectionStatus } from './signalrModels';
 import type { ITabStatus } from './TabStatusModels';
 
@@ -15,6 +16,10 @@ export interface IBackgroundDiagnostics {
   profileName?: string;
   /** Presence only: the group code itself is a shared secret. */
   groupcodePresent: boolean;
+  /** Which backend this profile syncs through; null while storage has not been read. */
+  syncBackend?: SyncBackend | null;
+  /** Presence only: the pairing code contains the relay's secret. */
+  localPairingPresent?: boolean;
   connection: IConnectionStatus;
   messages: IMessageStatus;
   badge: IBadgeStatus;
@@ -92,7 +97,9 @@ export function formatDiagnosticsReport(
       '## Status',
       `Chrome instance id: ${background.chromeInstanceId || '-'}`,
       `Profile name: ${background.profileName ?? '-'}`,
+      `Sync backend: ${background.syncBackend ?? 'unknown'}`,
       `Group code set: ${background.groupcodePresent ? 'yes' : 'no'}`,
+      `Local relay paired: ${background.localPairingPresent ? 'yes' : 'no'}`,
       `SignalR connection: ${background.connection.status}` +
         (background.connection.connectionId ? ` (id ${background.connection.connectionId})` : '') +
         (background.connection.error ? ` - ${background.connection.error}` : ''),

@@ -1,41 +1,34 @@
-import axios from 'axios';
 import { BehaviorSubject } from 'rxjs';
 import { chromeInstanceId } from './BackgroundChromeInstanceIdHandler';
-import { groupcode } from './BackgroundGroupcodeHandler';
-import { apiBaseUrl } from './settings';
 import { connection } from './signalr';
+import { localTransport } from './localsync';
+import { syncBackend } from './syncBackendHandler';
+import { activeTransport, type ISignalrMessage } from './transport';
 import { MessageStatusEnum } from '../Shared/MessageStatusModels';
 import type { IMessageStatus } from '../Shared/MessageStatusModels';
 import { createLogger } from '../Shared/logger';
+
+export type { ISignalrMessage };
 
 const logger = createLogger('messages');
 
 export const messageStatus = new BehaviorSubject<IMessageStatus>({ status: MessageStatusEnum.init });
 
-export interface ISignalrMessage<T> {
-  type: string,
-  chromeinstanceid?: string,
-  connectionid?: string
-  payload?: T
-}
-
 export async function sendSignalrMessage<T>(message: ISignalrMessage<T>) {
-  if (!groupcode.value.signature) {
+  const transport = activeTransport();
+  if (!transport) {
     return;
   }
-  const groupcodeAuthorization = groupcode.value.signature;
   logger.debug('send', message.type);
   try {
-    const result = await axios.post(`${apiBaseUrl}/api/messages`, {
+    const result = await transport.send({
       ...message,
       chromeinstanceid: chromeInstanceId.value,
-      connectionid: connection.value?.connectionId
-    }, {
-      headers: {
-        groupcodeauthorization: groupcodeAuthorization
-      }
+      connectionid: transport.connectionId() ?? undefined
     });
-    messageStatus.next({ status: MessageStatusEnum.success });
+    if (result.delivered) {
+      messageStatus.next({ status: MessageStatusEnum.success });
+    }
     return result.data;
   }
   catch (err) {
@@ -66,6 +59,18 @@ export function registerSignalrMessages() {
       });
     }
   });
+
+  // The local relay delivers every message through one callback instead of
+  // per-type subscriptions on a hub connection.
+  localTransport.onMessage = message => {
+    const handler = handlers.get(message.type);
+    if (handler) {
+      filterself(handler)(message);
+    }
+  };
+
+  // An error from one backend says nothing about the other.
+  syncBackend.subscribe(() => messageStatus.next({ status: MessageStatusEnum.init }));
 }
 
 function filterself(func: (message: ISignalrMessage<any>) => void) {

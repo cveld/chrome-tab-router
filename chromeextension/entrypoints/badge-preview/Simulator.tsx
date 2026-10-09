@@ -243,7 +243,7 @@ function Simulator() {
               </div>
             </div>
             {presetStatus.problem || presetStatus.connecting ? (
-              <BadgeStatusBannerView status={presetStatus} endpoint={apiBaseUrl} onNavigate={() => {}} />
+              <BadgeStatusBannerView status={presetStatus} endpoint={`${apiBaseUrl}/api`} onNavigate={() => {}} />
             ) : (
               <p className="muted">No badge and no banner (a "Connected" notice shows briefly after connecting).</p>
             )}

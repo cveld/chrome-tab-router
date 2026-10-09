@@ -1,10 +1,12 @@
 import * as signalR from '@microsoft/signalr';
 import { HubConnectionState } from '@microsoft/signalr';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, combineLatest } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { ConnectionStatusEnum } from '../Shared/signalrModels';
 import type { IConnectionStatus } from '../Shared/signalrModels';
+import type { SyncBackend } from '../Shared/SyncBackendModels';
 import { groupcode } from './BackgroundGroupcodeHandler';
+import { syncBackend } from './syncBackendHandler';
 import { apiBaseUrl } from './settings';
 import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';
 import { createLogger } from '../Shared/logger';
@@ -62,6 +64,19 @@ function connectionstop(connection: signalR.HubConnection) {
     });
 }
 
+/** Manual reconnect from the options page: drop a live connection, or start a dead one. */
+export function reconnectCloud() {
+  logger.info('manual reconnect requested');
+  if (!connection.value) {
+    return;
+  }
+  if (connection.value.state === HubConnectionState.Connected) {
+    connectionstop(connection.value);
+  } else {
+    connectionstart(connection.value);
+  }
+}
+
 const backoffschedule = [0, 5, 15, 30, 60];
 let backoffIndex = 0;
 const backoffreset = 60 * 5 * 1000; // 5 minutes
@@ -73,6 +88,10 @@ function runConnect() {
     clearTimeout(timeoutfunc);
   }
   timeoutfunc = null;
+  if (!connection.value) {
+    // The sync backend was switched away from the cloud while an attempt was in flight.
+    return;
+  }
   const currenttimestamp = Date.now();
   logger.debug('runConnect', { backoffIndex, waitMs: Math.max(0, disconnectBackoff - currenttimestamp) });
   if (disconnectBackoff < currenttimestamp) {
@@ -99,13 +118,24 @@ export function reconnectIfDisconnected() {
 }
 
 export function registerSignalr() {
-  groupcode.pipe(filter(val => Object.keys(val).length !== 0)).subscribe(newgroupcode => {
+  // The hub connection only exists while the cloud backend is selected; the
+  // local relay (localsync.ts) reports into the same connectionStatus.
+  combineLatest([
+    groupcode.pipe(filter(val => Object.keys(val).length !== 0)),
+    syncBackend.pipe(filter((backend): backend is SyncBackend => backend !== null)),
+  ]).subscribe(([newgroupcode, backend]) => {
     if (timeoutfunc) {
       clearTimeout(timeoutfunc);
     }
     if (connection.value != null) {
-      connection.value.stop();
+      // Detach first so the old connection's onclose is not mistaken for a drop of the current one.
+      const former = connection.value;
+      connection.next(null);
+      former.stop();
       // potential memory leak. How to clean up the former connection properly?
+    }
+    if (backend !== 'cloud') {
+      return;
     }
 
     const newconnection = new signalR.HubConnectionBuilder()
@@ -152,15 +182,5 @@ export function registerSignalr() {
       payload: connectionStatus.value
     });
   });
-  backgroundChromeMessagingWithPort.messageHandlers.set('reconnect', () => {
-    logger.info('manual reconnect requested');
-    if (!connection.value) {
-      return;
-    }
-    if (connection.value.state === HubConnectionState.Connected) {
-      connectionstop(connection.value);
-    } else {
-      connectionstart(connection.value);
-    }
-  });
+  // The 'reconnect' message is handled by transport.ts, which picks the active backend.
 }

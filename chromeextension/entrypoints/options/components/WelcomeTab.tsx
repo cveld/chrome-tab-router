@@ -1,10 +1,12 @@
 import { configUrl } from '../../../src/Background/settings';
+import { setSyncBackend } from '../../../src/UI/backgroundStores';
+import type { TabKey } from '../lib/tabs';
 
 export function openGroupcodeApp() {
   void chrome.tabs.create({ url: configUrl });
 }
 
-export function WelcomeTab() {
+export function WelcomeTab({ onNavigate }: { onNavigate: (tab: TabKey) => void }) {
   return (
     <section className="narrow">
       <h1>Chrome Tab Router</h1>
@@ -13,8 +15,9 @@ export function WelcomeTab() {
         like to open your website.
       </p>
       <p>
-        The extension connects with an external webservice that provides the communication between
-        the various user profiles you have running.
+        To route links between your user profiles, the profiles have to be able to talk to each
+        other. You choose how, per profile. All profiles that should work together must use the
+        same option.
       </p>
       <p>
         Source code:{' '}
@@ -22,24 +25,54 @@ export function WelcomeTab() {
           github.com/cveld/chrome-tab-router
         </a>
       </p>
-      <h2>Groupcode</h2>
+
+      <h2>Cloud</h2>
       <p>
-        In order to connect user profiles together a <b>groupcode</b> is required.
+        An external web service relays the messages. Convenient, works across machines and needs
+        no installation. A <b>groupcode</b> connects your user profiles; the next tab walks you
+        through generating one or entering an existing one.
       </p>
-      <p>For the very first user profile you are setting up you will need to generate a groupcode.</p>
-      <p>For subsequent user profiles you will copy over the generated groupcode yourself.</p>
-      <p>In this way the user profiles get connected.</p>
-      <button type="button" className="btn primary" onClick={openGroupcodeApp}>
-        Generate
-      </button>
+      <div className="row">
+        <button
+          type="button"
+          className="btn secondary"
+          onClick={() => {
+            setSyncBackend('cloud');
+            onNavigate('connection');
+          }}
+        >
+          Set up cloud sync
+        </button>
+      </div>
+
+      <h2>Local relay</h2>
+      <p>
+        A small program on this machine relays the messages. Nothing leaves your computer and you
+        need no account, but it only connects profiles on this machine and the relay has to be
+        running. It uses a <b>pairing code</b> instead of a groupcode.
+      </p>
+      <div className="row">
+        <button
+          type="button"
+          className="btn secondary"
+          onClick={() => {
+            setSyncBackend('local');
+            onNavigate('connection');
+          }}
+        >
+          Set up the local relay
+        </button>
+      </div>
+
       <h2>Privacy policy</h2>
       <p>
         Chrome Tab Router only processes what it needs to route tabs between your Chrome
         profiles: the URLs of tabs it evaluates, the routing rules and profile names you
-        configure, and your groupcode. This data is relayed through an Azure-hosted backend
-        (SignalR + Azure Functions) purely to pass messages between your own profiles in real
-        time — the backend does not store your browsing history, and no data is shared with
-        third parties.
+        configure, and your groupcode or pairing code. With the cloud option this data is relayed
+        through an Azure-hosted backend (SignalR + Azure Functions) purely to pass messages
+        between your own profiles in real time — the backend does not store your browsing
+        history, and no data is shared with third parties. With the local relay option the data
+        only travels between processes on your own machine.
       </p>
       <p>
         The groupcode is a shared secret: only extension instances configured with the same

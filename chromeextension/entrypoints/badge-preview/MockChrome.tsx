@@ -24,7 +24,7 @@ export function MockIcon({ status, onClick }: { status: IBadgeStatus; onClick?: 
 }
 
 const OPTION_TABS = ['Welcome', 'Groupcode', 'Connection', 'User profiles', 'Rules', 'Log', 'Settings'];
-const TARGET_TAB: Record<BadgeTarget, string> = { groupcode: 'Groupcode', connection: 'Connection' };
+const TARGET_TAB: Record<BadgeTarget, string> = { connection: 'Connection' };
 
 export function MockOptionsPage({
   status,
@@ -56,7 +56,7 @@ export function MockOptionsPage({
       <BadgeStatusBannerView
         status={status}
         justConnected={justConnected}
-        endpoint={apiBaseUrl}
+        endpoint={`${apiBaseUrl}/api`}
         onNavigate={target => onTab(TARGET_TAB[target])}
       />
       <div className="mock-tab-content">{children}</div>

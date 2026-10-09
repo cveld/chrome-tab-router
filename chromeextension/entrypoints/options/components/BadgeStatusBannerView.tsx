@@ -1,14 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BadgeProblem, IBadgeStatus } from '../../../src/Shared/BadgeStatusModels';
 
-export type BadgeTarget = 'groupcode' | 'connection';
+/** The tab that explains and fixes a problem; all sync setup lives on the Connection tab. */
+export type BadgeTarget = 'connection';
+
+// A missing groupcode or pairing is reported generically: which backend to use,
+// and what it needs, is decided and explained on the Connection tab.
+const NOT_CONFIGURED = {
+  text: 'This profile is not set up to sync yet, so rules and user profiles cannot be shared and links cannot be routed to other profiles. Choose how to sync and finish the setup on the Connection tab.',
+  target: 'connection',
+  action: 'Set up sync',
+} as const;
 
 const EXPLANATIONS: Record<BadgeProblem, { text: string; target: BadgeTarget; action: string }> = {
-  groupcode: {
-    text: 'No group code is set in this profile, so rules and user profiles cannot be synced and links cannot be routed to other profiles.',
-    target: 'groupcode',
-    action: 'Set a group code',
-  },
+  setup: NOT_CONFIGURED,
+  groupcode: NOT_CONFIGURED,
+  pairing: NOT_CONFIGURED,
   connection: {
     text: 'This profile is not connected to the sync service. Routing to other profiles does not work until the connection is restored; it retries automatically.',
     target: 'connection',
@@ -67,7 +74,7 @@ export function BadgeStatusBannerView({
   status: IBadgeStatus;
   /** Show the short "Connected" confirmation (see useJustConnected). */
   justConnected?: boolean;
-  /** API base url the background talks to; shown for connection and message problems. */
+  /** Endpoint the background talks to (cloud api url or local relay url); shown for connection and message problems. */
   endpoint?: string;
   onNavigate: (target: BadgeTarget) => void;
 }) {
@@ -75,7 +82,7 @@ export function BadgeStatusBannerView({
     return (
       <div className="banner banner-info" role="status">
         <b>{status.title}</b>
-        {endpoint && <div className="banner-detail">Endpoint: {endpoint}/api</div>}
+        {endpoint && <div className="banner-detail">Endpoint: {endpoint}</div>}
       </div>
     );
   }
@@ -93,8 +100,8 @@ export function BadgeStatusBannerView({
       <b>{status.title}</b>
       <div>{explanation.text}</div>
       {status.error && <div className="banner-detail">{status.error}</div>}
-      {endpoint && status.problem !== 'groupcode' && (
-        <div className="banner-detail">Endpoint: {endpoint}/api</div>
+      {endpoint && status.problem !== 'setup' && status.problem !== 'groupcode' && status.problem !== 'pairing' && (
+        <div className="banner-detail">Endpoint: {endpoint}</div>
       )}
       <div className="banner-actions">
         <button type="button" className="btn secondary" onClick={() => onNavigate(explanation.target)}>
