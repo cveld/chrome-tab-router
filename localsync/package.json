@@ -1,6 +1,6 @@
 {
   "name": "chrome-tab-router-localsync",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Local sync relay for the Chrome Tab Router extension: keeps profile-to-profile routing on your own machine, without the cloud",
   "type": "module",
   "license": "MIT",
