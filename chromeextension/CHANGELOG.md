@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0](https://github.com/cveld/chrome-tab-router/compare/extension-v0.7.0...extension-v0.8.0) (2026-10-09)
+
+
+### Features
+
+* **chromeextension:** choose between cloud sync and a local relay ([a84ce7e](https://github.com/cveld/chrome-tab-router/commit/a84ce7e6b53b541063ca5b991e3d61c7c0df193e))
+* **localsync:** add a local sync relay for profiles on one machine ([29022dd](https://github.com/cveld/chrome-tab-router/commit/29022dd79b566f43091043df2b3fb1b55f3bd536))
+
+
+### Bug Fixes
+
+* **badge:** don't flag a missing group code before storage is read ([f7e8244](https://github.com/cveld/chrome-tab-router/commit/f7e8244062bb7a1955267d33298c31a85ce89366))
+
 ## [0.7.0](https://github.com/cveld/chrome-tab-router/compare/extension-v0.6.0...extension-v0.7.0) (2026-10-01)
 
 
