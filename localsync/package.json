@@ -1,0 +1,53 @@
+{
+  "name": "chrome-tab-router-localsync",
+  "version": "0.1.0",
+  "description": "Local sync relay for the Chrome Tab Router extension: keeps profile-to-profile routing on your own machine, without the cloud",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "chrome",
+    "chrome-extension",
+    "chrome-tab-router",
+    "websocket",
+    "relay"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cveld/chrome-tab-router.git",
+    "directory": "localsync"
+  },
+  "homepage": "https://github.com/cveld/chrome-tab-router#readme",
+  "bugs": {
+    "url": "https://github.com/cveld/chrome-tab-router/issues"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "bin": {
+    "chrome-tab-router-localsync": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/cli.js start",
+    "pair": "npm run build && node dist/cli.js pair",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.11"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

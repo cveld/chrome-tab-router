@@ -14,14 +14,18 @@
     "chromeextension:build:dev": "npm run --prefix chromeextension build:dev",
     "chromeextension:build:azure": "npm run --prefix chromeextension build:azure",
     "chromeextension:build:localfunc": "npm run --prefix chromeextension build:localfunc",
+    "chromeextension:build:localsync": "npm run --prefix chromeextension build:localsync",
+    "localsync:start": "npm run --prefix localsync start",
+    "localsync:pair": "npm run --prefix localsync pair",
     "func:start": "npm run --prefix api start",
     "func:build:watch": "npm run --prefix api watch",
     "app:start": "npm run --prefix app dev",
     "watch:all": "npm-run-all --parallel func:start chromeextension:scripts:build:watch func:build:watch app:start",
-    "install:all": "npm-run-all chromeextension:scripts:install func:install app:install",
+    "install:all": "npm-run-all chromeextension:scripts:install func:install app:install localsync:install",
     "chromeextension:scripts:install": "npm install --prefix chromeextension",
     "func:install": "npm install --prefix api",
-    "app:install": "npm install --prefix app"
+    "app:install": "npm install --prefix app",
+    "localsync:install": "npm install --prefix localsync"
   },
   "repository": {
     "type": "git",
