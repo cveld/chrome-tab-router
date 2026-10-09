@@ -60,6 +60,15 @@
       groupcode can exchange messages. It is meant to be shared only between your own Chrome
       profiles.
     </p>
+    <p>
+      Generating a groupcode requires signing in to the web app through Azure Static Web Apps
+      authentication. The identity details that this sign-in supplies, such as the identity
+      provider, a user id, your sign-in name and roles, are used to create the groupcode and
+      are contained in it. The groupcode is returned to you and kept in your own browser; the
+      backend does not keep a user database or an account for you. Because the groupcode
+      contains these details, treat it as private and only enter it in your own Chrome profiles.
+      You do not need to sign in at all to use the local relay option.
+    </p>
 
     <h2>Local relay</h2>
     <p>

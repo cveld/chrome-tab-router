@@ -71,8 +71,10 @@ export function WelcomeTab({ onNavigate }: { onNavigate: (tab: TabKey) => void }
         configure, and your groupcode or pairing code. With the cloud option this data is relayed
         through an Azure-hosted backend (SignalR + Azure Functions) purely to pass messages
         between your own profiles in real time — the backend does not store your browsing
-        history, and no data is shared with third parties. With the local relay option the data
-        only travels between processes on your own machine.
+        history, and no data is shared with third parties. Generating a groupcode requires signing
+        in to the web app; the identity details that sign-in supplies (such as your sign-in name)
+        are contained in the groupcode, so treat it as private. With the local relay option the
+        data only travels between processes on your own machine and no sign-in is needed.
       </p>
       <p>
         The groupcode is a shared secret: only extension instances configured with the same
