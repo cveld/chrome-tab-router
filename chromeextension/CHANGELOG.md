@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/cveld/chrome-tab-router/compare/extension-v0.8.0...extension-v0.9.0) (2026-10-13)
+
+
+### Features
+
+* **chromeextension:** document the open-url bypass bridge for automation tools ([4828d95](https://github.com/cveld/chrome-tab-router/commit/4828d95783b7c854c73e17101933888b054e9a2b))
+
 ## [0.8.0](https://github.com/cveld/chrome-tab-router/compare/extension-v0.7.0...extension-v0.8.0) (2026-10-09)
 
 
