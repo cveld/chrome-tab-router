@@ -10,8 +10,27 @@ import { interstitialSettings } from './interstitialSettingsHandler';
 import { userprofiles } from './userprofilesHandler';
 import { createLogger } from '../Shared/logger';
 import { urlOrigin } from '../Shared/DiagnosticsModels';
+import { contentScriptMatches, isBridgeUrl } from '../Shared/contentScriptMatches';
 
 const logger = createLogger('tabs');
+
+// The web app bridge page (src/Content/ContentOpenUrlHandler.ts) is this
+// extension's own control surface, not a page a user is "browsing" - it must
+// never be handed off to another profile, same as chrome://newtab/ below.
+// Computed once at module load: the underlying env vars are build-time
+// constants (see contentScriptMatches.ts), not something that varies per
+// call. Guarded because a misconfigured build must not crash routing for
+// every other url - it would already fail identically for the content
+// script itself, so this file failing open (never matching) is the safer
+// default of the two.
+const bridgeUrlPatterns = (() => {
+  try {
+    return contentScriptMatches(import.meta.env.WXT_CONFIG_URL, import.meta.env.WXT_CONTENT_SCRIPT_EXTRA_URLS);
+  } catch (error) {
+    logger.error('could not resolve bridge url patterns', error);
+    return [];
+  }
+})();
 
 // List that captures the handling state of a created tab
 const tabs = new Set<number>();
@@ -129,7 +148,11 @@ export function registerTabUpdateHandler() {
     }
     else {
       // Check whether user clicked new tab operation:
-      if (targetUrl !== 'chrome://newtab/' && !targetUrl.startsWith('chrome-extension://')) {
+      if (
+        targetUrl !== 'chrome://newtab/' &&
+        !targetUrl.startsWith('chrome-extension://') &&
+        !isBridgeUrl(targetUrl, bridgeUrlPatterns)
+      ) {
         // If not, we will validate the incoming url and route if required:
         handleTargetUrl(tab.id!, targetUrl);
       }

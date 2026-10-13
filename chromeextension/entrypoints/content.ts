@@ -2,6 +2,7 @@ import { registerChromeMessaging } from '../src/Messaging/ChromeMessaging';
 import { registerDocumentEventing, dispatchEventToPage } from '../src/Messaging/DocumentEventing';
 import { registerContentChromeInstanceIdHandler } from '../src/Content/ContentChromeInstanceIdHandler';
 import { registerContentGroupcodeHandler } from '../src/Content/ContentGroupcodeHandler';
+import { registerContentOpenUrlHandler } from '../src/Content/ContentOpenUrlHandler';
 import { contentScriptMatches } from '../src/Shared/contentScriptMatches';
 
 export default defineContentScript({
@@ -15,6 +16,7 @@ export default defineContentScript({
     registerDocumentEventing();
     registerContentChromeInstanceIdHandler();
     registerContentGroupcodeHandler();
+    registerContentOpenUrlHandler();
 
     chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       if (msg.color) {

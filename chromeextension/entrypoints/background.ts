@@ -12,6 +12,7 @@ import { registerRulesHandler } from '../src/Background/rulesHandler';
 import { registerChromeProfileNameHandler } from '../src/Background/chromeprofileNameHandler';
 import { registerInterstitialSettingsHandler } from '../src/Background/interstitialSettingsHandler';
 import { registerTabUpdateHandler } from '../src/Background/tabUpdateHandler';
+import { registerOpenUrlHandler } from '../src/Background/openUrlHandler';
 import { registerBadgeStatusHandler } from '../src/Background/badgeStatusHandler';
 import { registerWatchdogAlarm } from '../src/Background/watchdogAlarm';
 import { registerDevMenuHandler } from '../src/Background/devMenuHandler';
@@ -54,6 +55,7 @@ export default defineBackground(() => {
   registerChromeProfileNameHandler();
   registerInterstitialSettingsHandler();
   registerTabUpdateHandler();
+  registerOpenUrlHandler();
   registerBadgeStatusHandler();
   registerWatchdogAlarm();
   registerDevMenuHandler();

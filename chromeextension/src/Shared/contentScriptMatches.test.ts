@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contentScriptMatches } from './contentScriptMatches';
+import { contentScriptMatches, isBridgeUrl } from './contentScriptMatches';
 
 describe('contentScriptMatches', () => {
   it('restricts to the exact production host', () => {
@@ -41,5 +41,30 @@ describe('contentScriptMatches', () => {
   it('rejects a missing url', () => {
     expect(() => contentScriptMatches(undefined)).toThrow();
     expect(() => contentScriptMatches('')).toThrow();
+  });
+});
+
+describe('isBridgeUrl', () => {
+  const patterns = ['https://chrome-tab-router.carlintveld.nl/*'];
+
+  it('matches a url on the bridge host regardless of path', () => {
+    expect(isBridgeUrl('https://chrome-tab-router.carlintveld.nl/', patterns)).toBe(true);
+    expect(isBridgeUrl('https://chrome-tab-router.carlintveld.nl/some/path?x=1', patterns)).toBe(true);
+  });
+
+  it('rejects a different host', () => {
+    expect(isBridgeUrl('https://example.com/', patterns)).toBe(false);
+  });
+
+  it('rejects a different scheme on the same host', () => {
+    expect(isBridgeUrl('http://chrome-tab-router.carlintveld.nl/', patterns)).toBe(false);
+  });
+
+  it('rejects an unparseable url rather than throwing', () => {
+    expect(isBridgeUrl('not a url', patterns)).toBe(false);
+  });
+
+  it('rejects everything when there are no patterns', () => {
+    expect(isBridgeUrl('https://chrome-tab-router.carlintveld.nl/', [])).toBe(false);
   });
 });

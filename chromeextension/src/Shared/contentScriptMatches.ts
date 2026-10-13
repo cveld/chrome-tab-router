@@ -35,3 +35,21 @@ function toMatchPattern(rawUrl: string): string {
 function isLocalHost(hostname: string): boolean {
   return hostname === 'localhost' || hostname === '127.0.0.1';
 }
+
+// Whether `url` falls under one of `patterns` (each "<scheme>://<host>/*", as
+// produced by contentScriptMatches() above). Used by tabUpdateHandler.ts to
+// keep the web-app bridge page itself out of routing: it is the extension's
+// own control surface (see src/Content/ContentOpenUrlHandler.ts), not a page
+// a user is "browsing" that should ever hand off to another profile.
+export function isBridgeUrl(url: string, patterns: string[]): boolean {
+  let target: URL;
+  try {
+    target = new URL(url);
+  } catch {
+    return false;
+  }
+  return patterns.some(pattern => {
+    const match = /^(https?):\/\/([^/]+)\/\*$/.exec(pattern);
+    return !!match && `${target.protocol}` === `${match[1]}:` && target.hostname === match[2];
+  });
+}
