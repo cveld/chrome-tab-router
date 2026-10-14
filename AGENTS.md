@@ -276,6 +276,17 @@ rewrites all non-asset routes to `index.html` (SPA fallback).
 one Azure Static Web App on push to `main` / PRs. `chromeextension/` is not part of this
 pipeline — it is built/published to the Chrome Web Store manually (`npm run zip`).
 
+### Releases (release-please)
+
+`release-please-config.json` has one release PR per package (`app`, `api`, `chromeextension`,
+`localsync`), driven by conventional commits on `main`. A commit only counts for the packages
+whose directory it touches, so a change to repo-level files (`docs/`, `skills/`, `AGENTS.md`,
+root config) never triggers a release by itself. Keep such changes out of the package
+directories: a stray edit to `chromeextension/README.md` is enough to open an extension release
+PR. Use `docs:`/`chore:` for changes that are not user-facing, and `feat:`/`fix:` only for real
+behaviour changes. A commit on `main` cannot be retracted from release-please; the only levers
+are a `Release-As: x.y.z` footer (sets the version) or simply not merging the release PR.
+
 ## Local end-to-end test against a locally running Function App
 
 The extension talks straight to the Functions host over SignalR (`{apiBaseUrl}/api`),
