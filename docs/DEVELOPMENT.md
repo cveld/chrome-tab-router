@@ -328,6 +328,15 @@ npx skills add kiluazen/kstack --skill chrome-relay
   router page and service worker of this extension still have to be inspected by hand via
   `chrome://extensions` (Developer mode → Inspect views).
 
+`skills/chrome-tab-router/` is this repo's own skill (committed, unlike the third-party ones
+above). It tells an agent that already has `chrome-relay` how to open a URL without Chrome Tab
+Router routing it, and ships the `open-url-bypassed.ps1` script. To use it from every project,
+link it into your user skills (Windows needs Developer Mode or an elevated shell):
+
+```powershell
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.claude\skills\chrome-tab-router" -Target "<repo>\skills\chrome-tab-router"
+```
+
 `npx skills update` refreshes installed skills. `.claude/skills/*` are symlinks into
 `.agents/skills/` with absolute paths, which is another reason not to commit them.
 

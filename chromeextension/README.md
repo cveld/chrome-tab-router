@@ -70,13 +70,16 @@ extension's own web-app bridge instead of the Tabs API:
    `chrome.tabs.update()`, which never raises `chrome.tabs.onCreated` and so never re-enters
    routing either.
 
-`../scripts/open-url-bypassed.ps1` wraps both steps for the
+`../skills/chrome-tab-router/open-url-bypassed.ps1` wraps both steps for the
 [chrome-relay](https://chromewebstore.google.com/detail/chrome-relay/cpdiapbifblhlcpnmlmfpgfjlacebokb)
 CLI:
 
 ```powershell
-./scripts/open-url-bypassed.ps1 -Profile <chrome-relay profile> -Url "https://example.com/"
+./skills/chrome-tab-router/open-url-bypassed.ps1 -Profile <chrome-relay profile> -Url "https://example.com/"
 ```
+
+The same folder is an agent skill (`SKILL.md`) that teaches agents to combine chrome-relay with
+this bypass; see "AI agent skills" in `docs/DEVELOPMENT.md`.
 
 ## Project Structure
 
