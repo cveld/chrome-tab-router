@@ -284,8 +284,14 @@ whose directory it touches, so a change to repo-level files (`docs/`, `skills/`,
 root config) never triggers a release by itself. Keep such changes out of the package
 directories: a stray edit to `chromeextension/README.md` is enough to open an extension release
 PR. Use `docs:`/`chore:` for changes that are not user-facing, and `feat:`/`fix:` only for real
-behaviour changes. A commit on `main` cannot be retracted from release-please; the only levers
-are a `Release-As: x.y.z` footer (sets the version) or simply not merging the release PR.
+behaviour changes. A commit on `main` cannot be retracted from release-please; the only lever is
+simply not merging (or closing) the release PR.
+
+Never push an empty commit with a `Release-As:` footer to steer one package: a commit that
+touches no files counts for **every** package, so the footer sets that version everywhere (it once
+opened PRs that would have taken `localsync` from 0.2.0 to 0.9.2 and `app`/`api` down from 1.1.0).
+If a version must be forced, put the footer in a commit that changes files in that package only,
+and check every open release PR afterwards. Before merging any release PR, read its manifest diff.
 
 ## Local end-to-end test against a locally running Function App
 
