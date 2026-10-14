@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/cveld/chrome-tab-router/compare/extension-v0.9.0...extension-v0.9.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **chromeextension:** default to cloud sync when a group code already exists ([5a6445a](https://github.com/cveld/chrome-tab-router/commit/5a6445ad6a7be796ee39f4fcebba593e5c7139be))
+* **chromeextension:** point production build at the custom domain ([8b3a967](https://github.com/cveld/chrome-tab-router/commit/8b3a9672455f912a95560078669fa479aa2c535c))
+
 ## [0.9.0](https://github.com/cveld/chrome-tab-router/compare/extension-v0.8.0...extension-v0.9.0) (2026-10-13)
 
 
