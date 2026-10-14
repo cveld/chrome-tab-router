@@ -1,6 +1,6 @@
 {
   "name": "chrome-tab-router-extension",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Routes urls to desired user profiles",
   "private": true,
   "type": "module",
