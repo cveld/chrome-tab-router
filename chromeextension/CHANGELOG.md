@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.2](https://github.com/cveld/chrome-tab-router/compare/extension-v0.9.1...extension-v0.9.2) (2026-10-14)
+
+
+### Features
+
+* add chrome-tab-router agent skill for bypassed tab opening ([ae06fd4](https://github.com/cveld/chrome-tab-router/commit/ae06fd40034e08f2768a3f3ba45cd6c23862e923))
+
+
+### Miscellaneous Chores
+
+* **chromeextension:** release as a patch version ([2e140e6](https://github.com/cveld/chrome-tab-router/commit/2e140e6bf6fe47cdf7f3317d827d5c22145486e6))
+
 ## [0.9.1](https://github.com/cveld/chrome-tab-router/compare/extension-v0.9.0...extension-v0.9.1) (2026-10-14)
 
 
