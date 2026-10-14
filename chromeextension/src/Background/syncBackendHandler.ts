@@ -46,12 +46,23 @@ function state(): ISyncBackendState {
 
 export function registerSyncBackendHandler() {
   chrome.storage.local.get<Record<string, unknown>>(
-    [SYNC_BACKEND_STORAGE_KEY, LOCAL_PAIRING_STORAGE_KEY],
+    [SYNC_BACKEND_STORAGE_KEY, LOCAL_PAIRING_STORAGE_KEY, 'groupcode'],
     value => {
       localPairing.next(parsePairing(value[LOCAL_PAIRING_STORAGE_KEY]) ?? null);
       localPairingLoaded.next(true);
-      syncBackendChosen.next(isSyncBackend(value[SYNC_BACKEND_STORAGE_KEY]));
-      syncBackend.next(normalizeSyncBackend(value[SYNC_BACKEND_STORAGE_KEY], defaultSyncBackend));
+
+      let stored = value[SYNC_BACKEND_STORAGE_KEY];
+      // Installs from before the backend choice existed only ever used the
+      // cloud: a stored group code with no choice means "cloud", whatever the build default.
+      const groupcode = value['groupcode'] as { encoded?: string } | undefined;
+      if (!isSyncBackend(stored) && groupcode?.encoded) {
+        stored = 'cloud';
+        chrome.storage.local.set({ [SYNC_BACKEND_STORAGE_KEY]: stored });
+        logger.info('existing group code found, sync backend set to cloud');
+      }
+
+      syncBackendChosen.next(isSyncBackend(stored));
+      syncBackend.next(normalizeSyncBackend(stored, defaultSyncBackend));
     },
   );
 
