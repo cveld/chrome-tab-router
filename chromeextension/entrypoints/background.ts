@@ -32,7 +32,20 @@ export default defineBackground(() => {
   // if a later register*() call throws; that page is also where a broken or
   // not-yet-established connection gets explained.
   chrome.action.onClicked.addListener(() => {
-    chrome.runtime.openOptionsPage();
+    // openOptionsPage() can fail (or do nothing) right after a fresh install;
+    // fall back to opening the page as a plain tab so the click never dies silently.
+    const openAsTab = () => chrome.tabs.create({ url: chrome.runtime.getURL('/options.html') });
+    try {
+      chrome.runtime.openOptionsPage(() => {
+        if (chrome.runtime.lastError) {
+          console.warn('openOptionsPage failed, opening a tab instead:', chrome.runtime.lastError.message);
+          openAsTab();
+        }
+      });
+    } catch (error) {
+      console.warn('openOptionsPage threw, opening a tab instead:', error);
+      openAsTab();
+    }
   });
 
   registerLogLevelSync();
