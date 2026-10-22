@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.0](https://github.com/cveld/chrome-tab-router/compare/extension-v0.9.1...extension-v0.10.0) (2026-10-22)
+
+
+### Features
+
+* **chromeextension:** add current-profile rules with optional sync ([2ac8740](https://github.com/cveld/chrome-tab-router/commit/2ac874002bde5a16c7dfb2d949b9a18374c21d4b))
+
+
+### Bug Fixes
+
+* **chromeextension:** fall back to a tab when openOptionsPage fails ([19a6c4a](https://github.com/cveld/chrome-tab-router/commit/19a6c4ab9f4b4d9d7894a4f3c75bf265b2123324))
+
 ## [0.9.1](https://github.com/cveld/chrome-tab-router/compare/extension-v0.9.0...extension-v0.9.1) (2026-10-14)
 
 
