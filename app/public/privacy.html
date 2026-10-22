@@ -30,7 +30,7 @@
   </head>
   <body>
     <h1>Chrome Tab Router — Privacy Policy</h1>
-    <p>Last updated: 2026-10-09</p>
+    <p>Last updated: 2026-10-22</p>
 
     <p>
       Chrome Tab Router is a Chrome extension that routes incoming links to a preferred Chrome
@@ -44,9 +44,17 @@
       connects your profiles (a groupcode or a pairing code, see below).
     </p>
     <p>
-      That data has to reach your other Chrome profiles. You choose per profile, on the
+      Shared rules, profile information and URLs handed over to another profile travel between
+      your connected profiles. You choose per profile, on the
       extension's Connection tab, how it gets there: through the cloud service or through a
       local relay on your own machine.
+    </p>
+    <p>
+      Each rule has a Sync across profiles setting. Rules with sync disabled stay in the
+      profile where you create them and are not sent to the cloud service or local relay.
+      Disabling sync on a previously shared rule sends a deletion of its old shared version;
+      it cannot undo data that was already shared. An Open in current profile rule leaves
+      matching tabs and popups in their original profile without transmitting a handover URL.
     </p>
 
     <h2>Cloud</h2>
@@ -94,8 +102,9 @@
     <p>
       All configuration (rules, profile names, groupcode or pairing code, and your choice of
       option) is stored locally in your browser via <code>chrome.storage.local</code> and
-      synced only between your own connected profiles. Your choice of option and your pairing
-      code are not synced; they stay in the profile where you set them.
+      shared only between your own connected profiles where applicable. Your choice of option,
+      pairing code and rules with sync disabled are not synced; they stay in the profile where
+      you set them.
     </p>
 
     <h2>Contact</h2>
