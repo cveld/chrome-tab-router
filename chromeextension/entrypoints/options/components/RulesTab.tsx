@@ -27,7 +27,11 @@ export function RulesTab() {
   return (
     <section>
       <p>
-        <button type="button" className="btn primary" onClick={() => setEditing({ mode: 'add' })}>
+        <button
+          type="button"
+          className="btn primary"
+          onClick={() => setEditing({ mode: 'add' })}
+        >
           New rule
         </button>
       </p>
@@ -35,7 +39,8 @@ export function RulesTab() {
         <thead>
           <tr>
             <th>Regex</th>
-            <th>Userprofile</th>
+            <th>Action / Userprofile</th>
+            <th>Sync</th>
             <th className="actions-column" />
           </tr>
         </thead>
@@ -43,18 +48,26 @@ export function RulesTab() {
           {visibleRules.map((rule, index) => {
             const profile = profileByInstance.get(rule.targetUserprofile ?? '');
             return (
-              <tr key={rule.id ?? index} onClick={() => setEditing({ mode: 'change', original: rule })}>
+              <tr
+                key={rule.id ?? index}
+                onClick={() => setEditing({ mode: 'change', original: rule })}
+              >
                 <td>{String(rule.regex)}</td>
                 <td>
-                  {profile ? (
+                  {rule.action === 'current-profile' ? (
+                    'Open in current profile'
+                  ) : profile ? (
                     <>
                       {profile.name || profile.chromeInstanceId}
-                      {profile.chromeInstanceId === ownInstanceId ? ' (current)' : ''}
+                      {profile.chromeInstanceId === ownInstanceId
+                        ? ' (current)'
+                        : ''}
                     </>
                   ) : (
                     rule.targetUserprofile
                   )}
                 </td>
+                <td>{rule.sync === false ? 'No (local only)' : 'Yes'}</td>
                 <td className="actions-column">
                   <button
                     type="button"
@@ -66,7 +79,13 @@ export function RulesTab() {
                       deleteRule(rule);
                     }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
                       <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
                       <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3V2h11v1h-11Z" />
                     </svg>
@@ -77,7 +96,7 @@ export function RulesTab() {
           })}
           {visibleRules.length === 0 && (
             <tr>
-              <td colSpan={3}>
+              <td colSpan={4}>
                 <i>No rules yet</i>
               </td>
             </tr>

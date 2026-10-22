@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { IRule } from '../../src/Shared/RuleModels';
+import type { RulePatch } from '../../src/Shared/RuleModels';
 import type { IUserProfileStatus } from '../../src/Shared/UserprofileModels';
 import { ConnectionStatusEnum } from '../../src/Shared/signalrModels';
-import { findMatchingRule, suggestRegexForUrl } from '../../src/Shared/ruleMatching';
+import {
+  findMatchingRule,
+  suggestRegexForUrl,
+} from '../../src/Shared/ruleMatching';
 import { BackgroundConnectionBanner } from '../../src/UI/components/BackgroundConnectionBanner';
 import { RuleDialog } from '../../src/UI/components/RuleDialog';
 import { UserProfileDialog } from '../../src/UI/components/UserProfileDialog';
@@ -25,7 +28,10 @@ import { useStore } from '../../src/UI/stores';
 const HANDOVER_TIMEOUT_MS = 10_000;
 
 export function RouterPage() {
-  const targetUrl = useMemo(() => new URLSearchParams(window.location.search).get('url') ?? '', []);
+  const targetUrl = useMemo(
+    () => new URLSearchParams(window.location.search).get('url') ?? '',
+    [],
+  );
 
   const rules = useStore(rulesStore);
   const userProfiles = useStore(userProfilesStore);
@@ -43,18 +49,30 @@ export function RouterPage() {
   // The tab disappears once the target profile confirms, so every path must
   // act at most once — a second routetab would open a duplicate tab there.
   const decided = useRef(false);
-  const handoverTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const handoverTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   useEffect(() => () => clearTimeout(handoverTimer.current), []);
 
-  const match = useMemo(() => findMatchingRule(rules, targetUrl), [rules, targetUrl]);
+  const match = useMemo(
+    () => findMatchingRule(rules, targetUrl),
+    [rules, targetUrl],
+  );
   const connected = connectionStatus.status === ConnectionStatusEnum.connected;
   const profiles = userProfiles.filter(profile => !profile.deleted);
   const armed =
-    !!match?.targetUserprofile && !cancelled && dialog === null && connected && tabId !== undefined;
+    match?.action !== 'current-profile' &&
+    !!match?.targetUserprofile &&
+    !cancelled &&
+    dialog === null &&
+    connected &&
+    tabId !== undefined;
 
   function profileName(chromeInstanceId: string | undefined) {
-    const profile = profiles.find(candidate => candidate.chromeInstanceId === chromeInstanceId);
+    const profile = profiles.find(
+      candidate => candidate.chromeInstanceId === chromeInstanceId,
+    );
     return profile?.name || chromeInstanceId || 'unknown profile';
   }
 
@@ -80,8 +98,24 @@ export function RouterPage() {
   }
 
   useEffect(() => {
-    chrome.tabs.getCurrent().then(tab => setTabId(tab?.id));
+    async function readTab() {
+      const tab = await chrome.tabs.getCurrent();
+      setTabId(tab?.id);
+    }
+    void readTab();
   }, []);
+
+  useEffect(() => {
+    if (
+      match?.action !== 'current-profile' ||
+      dialog !== null ||
+      tabId === undefined ||
+      decided.current
+    )
+      return;
+    decided.current = true;
+    openTabHere({ url: targetUrl, tabId });
+  }, [match?.action, dialog, tabId, targetUrl]);
 
   useEffect(() => {
     if (!armed) {
@@ -90,7 +124,9 @@ export function RouterPage() {
     }
     setRemaining(settings.countdownSeconds);
     const timer = setInterval(() => {
-      setRemaining(previous => (previous === null || previous <= 1 ? 0 : previous - 1));
+      setRemaining(previous =>
+        previous === null || previous <= 1 ? 0 : previous - 1,
+      );
     }, 1000);
     return () => clearInterval(timer);
   }, [armed, settings.countdownSeconds, match?.id, match?.targetUserprofile]);
@@ -102,7 +138,7 @@ export function RouterPage() {
     hand(match!.targetUserprofile!);
   }, [remaining, armed]);
 
-  function submitRule(patch: Pick<IRule, 'regex' | 'targetUserprofile'>) {
+  function submitRule(patch: RulePatch) {
     if (dialog === 'edit' && match) {
       changeRule(match, patch);
     } else {
@@ -132,14 +168,24 @@ export function RouterPage() {
           <>
             <span className="status-badge routing">Rule match</span>
             <p>
-              Belongs to <strong>{profileName(match.targetUserprofile)}</strong> — matched by{' '}
-              <code>{String(match.regex)}</code>
+              {match.action === 'current-profile' ? (
+                'Opens immediately in this profile'
+              ) : (
+                <>
+                  Belongs to{' '}
+                  <strong>{profileName(match.targetUserprofile)}</strong>
+                </>
+              )}{' '}
+              — matched by <code>{String(match.regex)}</code>
             </p>
           </>
         ) : (
           <>
             <span className="status-badge unmatched">No matching rule</span>
-            <p>This url stays in the current profile unless you pick a target below.</p>
+            <p>
+              This url stays in the current profile unless you pick a target
+              below.
+            </p>
           </>
         )}
         {armed && remaining !== null && (
@@ -147,23 +193,31 @@ export function RouterPage() {
             <span>
               Routing in <span className="router-countdown">{remaining}</span> s
             </span>
-            <button type="button" className="btn secondary" onClick={() => setCancelled(true)}>
+            <button
+              type="button"
+              className="btn secondary"
+              onClick={() => setCancelled(true)}
+            >
               Cancel
             </button>
           </p>
         )}
-        {handedOver && <p>Handed over to {handedOver}; this tab closes automatically.</p>}
+        {handedOver && (
+          <p>Handed over to {handedOver}; this tab closes automatically.</p>
+        )}
         {unconfirmed && (
           <p className="error-text">
-            No confirmation from {unconfirmed} within {HANDOVER_TIMEOUT_MS / 1000} s — it may be
-            offline. Pick a profile again or open the url here.
+            No confirmation from {unconfirmed} within{' '}
+            {HANDOVER_TIMEOUT_MS / 1000} s — it may be offline. Pick a profile
+            again or open the url here.
           </p>
         )}
       </div>
 
       {!connected && (
         <p className="error-text">
-          Not connected — routing to another profile is unavailable until the extension reconnects.
+          Not connected — routing to another profile is unavailable until the
+          extension reconnects.
         </p>
       )}
 
@@ -176,7 +230,11 @@ export function RouterPage() {
               <button
                 type="button"
                 className={`btn ${own ? 'primary' : 'secondary'}`}
-                disabled={handedOver !== null || tabId === undefined || (!own && !connected)}
+                disabled={
+                  handedOver !== null ||
+                  tabId === undefined ||
+                  (!own && !connected)
+                }
                 onClick={() => hand(profile.chromeInstanceId!)}
               >
                 {profile.name || profile.chromeInstanceId}
@@ -199,11 +257,19 @@ export function RouterPage() {
 
       <h2>Rules</h2>
       <div className="row">
-        <button type="button" className="btn secondary" onClick={() => setDialog('add')}>
+        <button
+          type="button"
+          className="btn secondary"
+          onClick={() => setDialog('add')}
+        >
           Add rule for this URL…
         </button>
         {match && (
-          <button type="button" className="btn secondary" onClick={() => setDialog('edit')}>
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => setDialog('edit')}
+          >
             Edit matching rule…
           </button>
         )}
@@ -211,11 +277,16 @@ export function RouterPage() {
 
       {dialog && (
         <RuleDialog
-          title={dialog === 'add' ? 'Add rule for this URL' : 'Edit matching rule'}
+          title={
+            dialog === 'add' ? 'Add rule for this URL' : 'Edit matching rule'
+          }
           submitLabel={dialog === 'add' ? 'Add' : 'Change'}
           initialRule={
             dialog === 'add'
-              ? { regex: suggestRegexForUrl(targetUrl), targetUserprofile: match?.targetUserprofile }
+              ? {
+                  regex: suggestRegexForUrl(targetUrl),
+                  targetUserprofile: match?.targetUserprofile,
+                }
               : match
           }
           onSubmit={submitRule}

@@ -1,7 +1,10 @@
 import type { IRule } from './RuleModels';
 
-export function findMatchingRule(rules: IRule[], url: string): IRule | undefined {
-  return rules.find(rule => {
+export function findMatchingRule(
+  rules: IRule[],
+  url: string,
+): IRule | undefined {
+  const matches = (rule: IRule) => {
     if (rule.deleted || !rule.regex) {
       return false;
     }
@@ -12,7 +15,12 @@ export function findMatchingRule(rules: IRule[], url: string): IRule | undefined
       // A rule with a broken regex must not break routing for every other rule.
       return false;
     }
-  });
+  };
+  // Exceptions must win over broader routing rules, regardless of list order.
+  return (
+    rules.find(rule => rule.action === 'current-profile' && matches(rule)) ??
+    rules.find(matches)
+  );
 }
 
 export function suggestRegexForUrl(url: string): string {

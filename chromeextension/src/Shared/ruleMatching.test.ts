@@ -3,52 +3,114 @@ import type { IRule } from './RuleModels';
 import { findMatchingRule, suggestRegexForUrl } from './ruleMatching';
 
 describe('findMatchingRule', () => {
+  it('prioritizes current-profile exceptions over broader routing rules', () => {
+    const route: IRule = { regex: 'localhost', targetUserprofile: 'other' };
+    const exception: IRule = {
+      regex:
+        '^https://terraform-resource-viewer\\.localhost/connect(?:[/?#]|$)',
+      action: 'current-profile',
+      sync: false,
+    };
+    expect(
+      findMatchingRule(
+        [route, exception],
+        'https://terraform-resource-viewer.localhost/connect?requestid=one',
+      ),
+    ).toBe(exception);
+    expect(
+      findMatchingRule(
+        [route, exception],
+        'https://terraform-resource-viewer.localhost/connect?requestid=two',
+      ),
+    ).toBe(exception);
+    expect(
+      findMatchingRule(
+        [route, exception],
+        'https://terraform-resource-viewer.localhost/lookup',
+      ),
+    ).toBe(route);
+    expect(
+      findMatchingRule(
+        [route, exception],
+        'https://terraform-resource-viewer.localhost/connect-other',
+      ),
+    ).toBe(route);
+    expect(
+      findMatchingRule(
+        [route, { ...exception, deleted: true }],
+        'https://terraform-resource-viewer.localhost/connect',
+      ),
+    ).toBe(route);
+  });
   it('returns the first matching rule', () => {
-    const firstRule: IRule = { regex: 'example\\.com', targetUserprofile: 'first' };
-    const secondRule: IRule = { regex: 'example\\.com', targetUserprofile: 'second' };
+    const firstRule: IRule = {
+      regex: 'example\\.com',
+      targetUserprofile: 'first',
+    };
+    const secondRule: IRule = {
+      regex: 'example\\.com',
+      targetUserprofile: 'second',
+    };
 
-    expect(findMatchingRule([firstRule, secondRule], 'https://example.com/')).toBe(firstRule);
+    expect(
+      findMatchingRule([firstRule, secondRule], 'https://example.com/'),
+    ).toBe(firstRule);
   });
 
   it('skips deleted rules', () => {
     const deletedRule: IRule = { regex: 'example\\.com', deleted: true };
     const activeRule: IRule = { regex: 'example\\.com' };
 
-    expect(findMatchingRule([deletedRule, activeRule], 'https://example.com/')).toBe(activeRule);
+    expect(
+      findMatchingRule([deletedRule, activeRule], 'https://example.com/'),
+    ).toBe(activeRule);
   });
 
   it('skips rules without a regex', () => {
     const ruleWithoutRegex: IRule = { targetUserprofile: 'ignored' };
     const matchingRule: IRule = { regex: 'example\\.com' };
 
-    expect(findMatchingRule([ruleWithoutRegex, matchingRule], 'https://example.com/')).toBe(
-      matchingRule,
-    );
+    expect(
+      findMatchingRule(
+        [ruleWithoutRegex, matchingRule],
+        'https://example.com/',
+      ),
+    ).toBe(matchingRule);
   });
 
   it('supports RegExp objects and regex strings', () => {
     const objectRule: IRule = { regex: /^https:\/\/object\.example\// };
     const stringRule: IRule = { regex: '^https://string\\.example/' };
 
-    expect(findMatchingRule([objectRule], 'https://object.example/path')).toBe(objectRule);
-    expect(findMatchingRule([stringRule], 'https://string.example/path')).toBe(stringRule);
+    expect(findMatchingRule([objectRule], 'https://object.example/path')).toBe(
+      objectRule,
+    );
+    expect(findMatchingRule([stringRule], 'https://string.example/path')).toBe(
+      stringRule,
+    );
   });
 
   it('skips invalid regex strings rather than throwing', () => {
     const invalidRule: IRule = { regex: '[invalid' };
     const validRule: IRule = { regex: 'example\\.com' };
 
-    expect(findMatchingRule([invalidRule, validRule], 'https://example.com/')).toBe(validRule);
+    expect(
+      findMatchingRule([invalidRule, validRule], 'https://example.com/'),
+    ).toBe(validRule);
   });
 
   it('returns undefined when no rule matches', () => {
-    expect(findMatchingRule([{ regex: 'other\\.example' }], 'https://example.com/')).toBeUndefined();
+    expect(
+      findMatchingRule([{ regex: 'other\\.example' }], 'https://example.com/'),
+    ).toBeUndefined();
   });
 });
 
 describe('suggestRegexForUrl', () => {
   it('escapes dots in the hostname', () => {
-    expect(suggestRegexForUrl('https://github.com/foo/bar')).toBe('^https?://github\\.com/');
+    expect(suggestRegexForUrl('https://github.com/foo/bar')).toBe(
+      '^https?://github\\.com/',
+    );
   });
 
   it('matches both http and https urls', () => {

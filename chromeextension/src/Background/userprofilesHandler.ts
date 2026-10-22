@@ -7,6 +7,7 @@ import { connectionStatus } from './signalr';
 import { sendSignalrMessage, addHandler } from './signalrmessages';
 import { BackgroundChromeMessagingWithPort } from '../Messaging/BackgroundChromeMessagingPort';
 import { rules } from './rulesHandler';
+import { syncedRules } from './rulesHandlerUtility';
 import type { IRule } from '../Shared/RuleModels';
 import { mergeUserprofiles } from './userprofileHandlerUtility';
 import { createLogger } from '../Shared/logger';
@@ -16,7 +17,9 @@ const logger = createLogger('userprofiles');
 export const userprofiles = new BehaviorSubject<IUserProfileStatus[]>([]);
 
 function addOrUpdate(userProfileStatus: IUserProfileStatus) {
-  const index = userprofiles.value.findIndex(a => a.chromeInstanceId == userProfileStatus.chromeInstanceId);
+  const index = userprofiles.value.findIndex(
+    a => a.chromeInstanceId == userProfileStatus.chromeInstanceId,
+  );
   const newarr = userprofiles.value;
   if (index === -1) {
     newarr.push(userProfileStatus);
@@ -26,7 +29,7 @@ function addOrUpdate(userProfileStatus: IUserProfileStatus) {
     merged.lastSeen = userProfileStatus.lastSeen;
     merged.deleted = false;
   }
-  chrome.storage.local.set({ 'userprofiles': newarr });
+  chrome.storage.local.set({ userprofiles: newarr });
 }
 
 export function registerUserprofilesHandler() {
@@ -34,18 +37,18 @@ export function registerUserprofilesHandler() {
     addOrUpdate({
       chromeInstanceId: message.chromeinstanceid!,
       connectionId: message.connectionid!,
-      lastSeen: Date.now()
+      lastSeen: Date.now(),
     });
     sendSignalrMessage({
-      type: 'live'
+      type: 'live',
     });
     sendSignalrMessage<Array<IUserProfileStatus>>({
       type: 'userprofiles',
-      payload: userprofiles.value
+      payload: userprofiles.value,
     });
     sendSignalrMessage<Array<IRule>>({
       type: 'rules',
-      payload: rules
+      payload: syncedRules(rules),
     });
   });
 
@@ -53,17 +56,20 @@ export function registerUserprofilesHandler() {
     addOrUpdate({
       chromeInstanceId: message.chromeinstanceid!,
       connectionId: message.connectionid!,
-      lastSeen: Date.now()
+      lastSeen: Date.now(),
     });
   });
 
-  chrome.storage.local.get<{ userprofiles?: IUserProfileStatus[] }>('userprofiles', value => {
-    if (!value.userprofiles) {
-      // skip undefined values
-      return;
-    }
-    userprofiles.next(value.userprofiles);
-  });
+  chrome.storage.local.get<{ userprofiles?: IUserProfileStatus[] }>(
+    'userprofiles',
+    value => {
+      if (!value.userprofiles) {
+        // skip undefined values
+        return;
+      }
+      userprofiles.next(value.userprofiles);
+    },
+  );
 
   listeners.set('userprofiles', (oldValue, newValue) => {
     userprofiles.next(newValue);
@@ -74,49 +80,53 @@ export function registerUserprofilesHandler() {
   userprofiles.subscribe(next => {
     popupmessaging.sendMessage({
       type: 'userprofiles',
-      payload: next
+      payload: next,
     });
   });
 
   popupmessaging.messageHandlers.set('getuserprofiles', (message, port) => {
     popupmessaging.sendMessage({
       type: 'userprofiles',
-      payload: userprofiles.value
+      payload: userprofiles.value,
     });
   });
 
   popupmessaging.messageHandlers.set('userprofiles', (message, port) => {
     chrome.storage.local.set({
-      'userprofiles': message.payload
+      userprofiles: message.payload,
     });
     sendSignalrMessage({
       type: 'userprofiles',
-      payload: message.payload
+      payload: message.payload,
     });
   });
 
   connectionStatus.subscribe(newConnectionStatus => {
     if (newConnectionStatus.status === ConnectionStatusEnum.connected) {
       sendSignalrMessage({
-        type: 'connected'
+        type: 'connected',
       });
     }
   });
 
   // Merge incoming signalr message
-  addHandler<Array<IUserProfileStatus>>('userprofiles', (message) => {
+  addHandler<Array<IUserProfileStatus>>('userprofiles', message => {
     // consume add, updated, removed userprofiles
     // ensure current userprofile is not deleted
-    const result = mergeUserprofiles(chromeInstanceId.value, userprofiles.value, message.payload);
+    const result = mergeUserprofiles(
+      chromeInstanceId.value,
+      userprofiles.value,
+      message.payload,
+    );
 
     if (result.haschanges) {
       sendSignalrMessage({
         type: 'userprofiles',
-        payload: result.merged
+        payload: result.merged,
       });
     }
     chrome.storage.local.set({
-      'userprofiles': result.merged
+      userprofiles: result.merged,
     });
   });
 }

@@ -4,10 +4,13 @@
 // an initial "get*" request on load, and command functions with the same
 // semantics (local optimistic update + notify background).
 import { ScriptChromeMessagingWithPort } from '../Messaging/ScriptChromeMessagingPort';
-import type { IRule } from '../Shared/RuleModels';
+import { isSyncedRule, type IRule, type RulePatch } from '../Shared/RuleModels';
 import type { IUserProfileStatus } from '../Shared/UserprofileModels';
 import type { ITabStatus } from '../Shared/TabStatusModels';
-import { ConnectionStatusEnum, type IConnectionStatus } from '../Shared/signalrModels';
+import {
+  ConnectionStatusEnum,
+  type IConnectionStatus,
+} from '../Shared/signalrModels';
 import type { IRouteTabRequest } from '../Shared/MessageModels';
 import {
   defaultInterstitialSettings,
@@ -16,7 +19,10 @@ import {
 } from '../Shared/SettingsModels';
 import { okBadgeStatus, type IBadgeStatus } from '../Shared/BadgeStatusModels';
 import type { IBackgroundDiagnostics } from '../Shared/DiagnosticsModels';
-import type { ISyncBackendState, SyncBackend } from '../Shared/SyncBackendModels';
+import type {
+  ISyncBackendState,
+  SyncBackend,
+} from '../Shared/SyncBackendModels';
 import { createStore } from './stores';
 
 const messaging = ScriptChromeMessagingWithPort.getInstance('popup');
@@ -29,9 +35,14 @@ export const connectionStatusStore = createStore<IConnectionStatus>({
 export const groupcodeStore = createStore<string>('');
 export const chromeInstanceIdStore = createStore<string>('');
 export const tabLogStore = createStore<ITabStatus[]>([]);
-export const settingsStore = createStore<IInterstitialSettings>(defaultInterstitialSettings);
+export const settingsStore = createStore<IInterstitialSettings>(
+  defaultInterstitialSettings,
+);
 export const badgeStatusStore = createStore<IBadgeStatus>(okBadgeStatus);
-export const syncBackendStore = createStore<ISyncBackendState>({ backend: 'cloud', chosen: false });
+export const syncBackendStore = createStore<ISyncBackendState>({
+  backend: 'cloud',
+  chosen: false,
+});
 
 messaging.setHandler<IRule[]>('rules', message => {
   rulesStore.set(message.payload ?? []);
@@ -76,7 +87,8 @@ messaging.setHandler<ISyncBackendState>('syncbackend', message => {
 });
 
 // The answer is broadcast to every open page, so whoever is waiting takes it.
-let pendingDiagnostics: Array<(diagnostics: IBackgroundDiagnostics) => void> = [];
+let pendingDiagnostics: Array<(diagnostics: IBackgroundDiagnostics) => void> =
+  [];
 messaging.setHandler<IBackgroundDiagnostics>('diagnostics', message => {
   const waiting = pendingDiagnostics;
   pendingDiagnostics = [];
@@ -115,13 +127,19 @@ export const backgroundConnectionStore = createStore<IBackgroundConnection>({
   error: messaging.lastError,
 });
 messaging.onConnectionChange((connected, error) => {
-  backgroundConnectionStore.set({ connected, error: connected ? undefined : error ?? messaging.lastError });
+  backgroundConnectionStore.set({
+    connected,
+    error: connected ? undefined : (error ?? messaging.lastError),
+  });
 });
 
 // --- Commands (UI -> background) -------------------------------------------
 
-export function addRule(rule: Pick<IRule, 'regex' | 'targetUserprofile'>): void {
-  const rules = [...rulesStore.get(), { ...rule, id: crypto.randomUUID(), updated: Date.now() }];
+export function addRule(rule: RulePatch): void {
+  const rules = [
+    ...rulesStore.get(),
+    { ...rule, id: crypto.randomUUID(), updated: Date.now() },
+  ];
   rulesStore.set(rules);
   messaging.sendMessage({ type: 'rules', payload: rules });
 }
@@ -135,29 +153,43 @@ export function deleteRule(rule: IRule): void {
   // Soft delete: the merge logic on the background side keeps deleted rules
   // around so deletions propagate to profiles that were offline.
   target.deleted = true;
+  target.updated = Math.max(Date.now(), (target.updated ?? 0) + 1);
   rulesStore.set([...rules]);
   messaging.sendMessage({ type: 'rules', payload: rules });
 }
 
-export function changeRule(
-  oldRule: IRule,
-  patch: Pick<IRule, 'regex' | 'targetUserprofile'>,
-): void {
+export function changeRule(oldRule: IRule, patch: RulePatch): void {
   const rules = rulesStore.get();
-  const target = rules.find(r => r === oldRule || (!!oldRule.id && r.id === oldRule.id));
+  const target = rules.find(
+    r => r === oldRule || (!!oldRule.id && r.id === oldRule.id),
+  );
   if (!target) {
+    return;
+  }
+  const updated = Math.max(Date.now(), (target.updated ?? 0) + 1);
+  if (isSyncedRule(target) && patch.sync === false) {
+    // Withdraw the old shared ID; a private copy must not resurrect on peers.
+    target.deleted = true;
+    target.updated = updated;
+    rules.push({ ...patch, id: crypto.randomUUID(), updated });
+    rulesStore.set([...rules]);
+    messaging.sendMessage({ type: 'rules', payload: rules });
     return;
   }
   target.regex = patch.regex;
   target.targetUserprofile = patch.targetUserprofile;
-  target.updated = Date.now();
+  target.action = patch.action;
+  target.sync = patch.sync;
+  target.updated = updated;
   rulesStore.set([...rules]);
   messaging.sendMessage({ type: 'rules', payload: rules });
 }
 
 export function updateUserProfile(profile: IUserProfileStatus): void {
   const profiles = userProfilesStore.get();
-  const index = profiles.findIndex(p => p.chromeInstanceId === profile.chromeInstanceId);
+  const index = profiles.findIndex(
+    p => p.chromeInstanceId === profile.chromeInstanceId,
+  );
   if (index === -1) {
     return;
   }
@@ -169,7 +201,9 @@ export function updateUserProfile(profile: IUserProfileStatus): void {
 
 export function deleteUserProfile(profile: IUserProfileStatus): void {
   const profiles = userProfilesStore.get();
-  const index = profiles.findIndex(p => p.chromeInstanceId === profile.chromeInstanceId);
+  const index = profiles.findIndex(
+    p => p.chromeInstanceId === profile.chromeInstanceId,
+  );
   if (index === -1) {
     return;
   }
@@ -214,7 +248,9 @@ export function requestBackgroundDiagnostics(
   return new Promise(resolve => {
     const done = (diagnostics: IBackgroundDiagnostics | undefined) => {
       clearTimeout(timer);
-      pendingDiagnostics = pendingDiagnostics.filter(pending => pending !== done);
+      pendingDiagnostics = pendingDiagnostics.filter(
+        pending => pending !== done,
+      );
       resolve(diagnostics);
     };
     const timer = setTimeout(() => done(undefined), timeoutMs);

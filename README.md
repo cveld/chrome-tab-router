@@ -18,6 +18,24 @@ You can install it from the
 The profiles have to be able to talk to each other for this. You choose how, per profile, on the
 extension's **Connection** tab. All profiles that should work together must use the same option.
 
+### Keep a URL in its current profile
+
+Choose **Open in current profile** as a rule's action to leave matching tabs and popups untouched:
+no handover, router page or countdown, even in **Always** mode. These exceptions take priority
+over ordinary routing rules. For example, this regex keeps a widget's connection popup local
+without depending on its request ID:
+
+```text
+^https://terraform-resource-viewer\.localhost/connect(?:[/?#]|$)
+```
+
+Each rule has a **Sync across profiles** checkbox. Enabled (the default), the rule is shared
+with your sync group; a current-profile action means each receiving profile keeps its own popup.
+Disabled, the rule stays only in the profile where you created it and is not sent to either relay.
+Disabling sync on an existing shared rule withdraws its shared version and keeps a private copy.
+Other profiles receive that withdrawal when they reconnect; they need an updated extension to
+understand the new current-profile action.
+
 ## Connecting your profiles
 
 ### Option 1: Cloud

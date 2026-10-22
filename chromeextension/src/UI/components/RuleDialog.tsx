@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import type { IRule } from '../../Shared/RuleModels';
+import type { IRule, RulePatch } from '../../Shared/RuleModels';
 import type { IUserProfileStatus } from '../../Shared/UserprofileModels';
-import { chromeInstanceIdStore, updateUserProfile, userProfilesStore } from '../backgroundStores';
+import {
+  chromeInstanceIdStore,
+  updateUserProfile,
+  userProfilesStore,
+} from '../backgroundStores';
 import { useStore } from '../stores';
 import { Modal } from './Modal';
 import { UserProfileDialog } from './UserProfileDialog';
@@ -10,17 +14,29 @@ interface RuleDialogProps {
   title: string;
   submitLabel?: string;
   initialRule?: IRule;
-  onSubmit(patch: Pick<IRule, 'regex' | 'targetUserprofile'>): void;
+  onSubmit(patch: RulePatch): void;
   onClose(): void;
 }
 
-export function RuleDialog({ title, submitLabel, initialRule, onSubmit, onClose }: RuleDialogProps) {
+export function RuleDialog({
+  title,
+  submitLabel,
+  initialRule,
+  onSubmit,
+  onClose,
+}: RuleDialogProps) {
   const profiles = useStore(userProfilesStore);
   const ownInstanceId = useStore(chromeInstanceIdStore);
   const [regex, setRegex] = useState(
-    initialRule?.regex instanceof RegExp ? initialRule.regex.source : (initialRule?.regex as string | undefined) ?? '',
+    initialRule?.regex instanceof RegExp
+      ? initialRule.regex.source
+      : ((initialRule?.regex as string | undefined) ?? ''),
   );
   const [target, setTarget] = useState(initialRule?.targetUserprofile ?? '');
+  const [action, setAction] = useState<NonNullable<IRule['action']>>(
+    initialRule?.action ?? 'route',
+  );
+  const [sync, setSync] = useState(initialRule?.sync !== false);
   const [renaming, setRenaming] = useState<IUserProfileStatus | null>(null);
 
   return (
@@ -28,13 +44,21 @@ export function RuleDialog({ title, submitLabel, initialRule, onSubmit, onClose 
       <form
         onSubmit={e => {
           e.preventDefault();
-          onSubmit({ regex, targetUserprofile: target });
+          onSubmit({
+            regex,
+            targetUserprofile: action === 'route' ? target : undefined,
+            action,
+            sync,
+          });
         }}
       >
         <label className="field">
           <span>Regex</span>
           <input
             type="text"
+            name="regex"
+            spellCheck={false}
+            autoCapitalize="off"
             value={regex}
             onChange={e => setRegex(e.target.value)}
             placeholder="Enter regular expression"
@@ -42,15 +66,53 @@ export function RuleDialog({ title, submitLabel, initialRule, onSubmit, onClose 
           />
         </label>
         <label className="field">
-          <span>Chrome userprofile target</span>
-          <ProfilePicker
-            profiles={(profiles as IUserProfileStatus[]).filter(profile => !profile.deleted)}
-            ownInstanceId={ownInstanceId}
-            value={target}
-            onChange={setTarget}
-            onRename={setRenaming}
-          />
+          <span>Action</span>
+          <select
+            name="action"
+            value={action}
+            onChange={e =>
+              setAction(e.target.value as NonNullable<IRule['action']>)
+            }
+          >
+            <option value="route">Route to profile</option>
+            <option value="current-profile">Open in current profile</option>
+          </select>
         </label>
+        {action === 'current-profile' && (
+          <p>
+            Leave matching tabs and popups in this profile immediately, without
+            routing or a countdown. This exception takes priority over routing
+            rules.
+          </p>
+        )}
+        {action === 'route' && (
+          <label className="field">
+            <span>Chrome userprofile target</span>
+            <ProfilePicker
+              profiles={(profiles as IUserProfileStatus[]).filter(
+                profile => !profile.deleted,
+              )}
+              ownInstanceId={ownInstanceId}
+              value={target}
+              onChange={setTarget}
+              onRename={setRenaming}
+            />
+          </label>
+        )}
+        <label className="field">
+          <input
+            name="sync"
+            type="checkbox"
+            checked={sync}
+            onChange={e => setSync(e.target.checked)}
+          />{' '}
+          Sync across profiles
+        </label>
+        <p>
+          {sync
+            ? 'Share this rule with other profiles in your sync group.'
+            : 'Keep this rule only in this profile.'}
+        </p>
         <button type="submit" className="btn primary">
           {submitLabel ?? (title === 'Add rule' ? 'Add' : 'Change')}
         </button>
@@ -79,7 +141,13 @@ interface ProfilePickerProps {
   onRename(profile: IUserProfileStatus): void;
 }
 
-function ProfilePicker({ profiles, ownInstanceId, value, onChange, onRename }: ProfilePickerProps) {
+function ProfilePicker({
+  profiles,
+  ownInstanceId,
+  value,
+  onChange,
+  onRename,
+}: ProfilePickerProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const selected = profiles.find(profile => profile.chromeInstanceId === value);
@@ -118,14 +186,20 @@ function ProfilePicker({ profiles, ownInstanceId, value, onChange, onRename }: P
         onClick={() => setOpen(previous => !previous)}
       >
         <span>
-          {selected ? (selected.name || selected.chromeInstanceId)! : 'Select a profile…'}
+          {selected
+            ? (selected.name || selected.chromeInstanceId)!
+            : 'Select a profile…'}
           {selected?.chromeInstanceId === ownInstanceId ? ' (current)' : ''}
         </span>
         <span className="profile-picker-caret">▾</span>
       </button>
       {open && (
         <ul className="profile-picker-menu" role="listbox">
-          <li className="profile-picker-option" role="option" aria-selected={value === ''}>
+          <li
+            className="profile-picker-option"
+            role="option"
+            aria-selected={value === ''}
+          >
             <button
               type="button"
               className="profile-picker-option-label"
