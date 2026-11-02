@@ -26,7 +26,12 @@ export function findMatchingRule(
 export function suggestRegexForUrl(url: string): string {
   try {
     const parsedUrl = new URL(url);
-    return `^https?://${escapeRegex(parsedUrl.hostname)}/`;
+    // Only web urls may match both schemes; chrome://downloads/ must keep its own.
+    const scheme =
+      parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:'
+        ? 'https?'
+        : escapeRegex(parsedUrl.protocol.slice(0, -1));
+    return `^${scheme}://${escapeRegex(parsedUrl.hostname)}/`;
   } catch {
     return `^${escapeRegex(url)}`;
   }

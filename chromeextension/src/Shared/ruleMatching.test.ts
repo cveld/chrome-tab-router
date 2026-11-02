@@ -129,6 +129,14 @@ describe('suggestRegexForUrl', () => {
     expect(new RegExp(suggestion).test(url)).toBe(true);
   });
 
+  it('keeps the scheme of non-web urls such as chrome://downloads/', () => {
+    const url = 'chrome://downloads/';
+    const suggestion = suggestRegexForUrl(url);
+
+    expect(suggestion).toBe('^chrome://downloads/');
+    expect(new RegExp(suggestion).test(url)).toBe(true);
+  });
+
   it('falls back to an escaped literal for unparseable input', () => {
     const url = 'not a [valid] url';
     const suggestion = suggestRegexForUrl(url);
